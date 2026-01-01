@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Control Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+            --radius: 12px;
+            --shadow: 0 10px 25px rgba(0,0,0,0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .header {
+            background: white;
+            border-radius: var(--radius);
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .header-left p {
+            color: var(--gray);
+            margin-top: 5px;
+            font-size: 15px;
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #dcfce7;
+            color: #166534;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Panel Cards */
+        .panel-card {
+            background: white;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .panel-header {
+            padding: 25px 25px 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .panel-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+        
+        .database .panel-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+        
+        .redis .panel-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        
+        .notification .panel-icon {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+        
+        .panel-subtitle {
+            color: var(--gray);
+            font-size: 14px;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        .panel-body {
+            padding: 25px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Database & Redis Panel */
+        .db-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed var(--gray-light);
+        }
+        
+        .info-label {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        
+        .status-online {
+            color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .open-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: var(--transition);
+            width: 100%;
+            margin-top: auto;
+        }
+        
+        .open-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .database .open-btn {
+            background: var(--secondary);
+        }
+        
+        .database .open-btn:hover {
+            background: #0da271;
+        }
+        
+        .redis .open-btn {
+            background: var(--danger);
+        }
+        
+        .redis .open-btn:hover {
+            background: #dc2626;
+        }
+        
+        /* Notification Panel */
+        .notification-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--dark);
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            padding: 14px;
+            border: 2px solid var(--gray-light);
+            border-radius: 8px;
+            font-size: 15px;
+            transition: var(--transition);
+        }
+        
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .radio-option {
+            flex: 1;
+        }
+        
+        .radio-option input {
+            display: none;
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            border: 2px solid var(--gray-light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .radio-option input:checked + .radio-label {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            color: var(--primary);
+        }
+        
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: var(--radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+        
+        .send-btn:hover:not(:disabled) {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Response Message */
+        .response {
+            padding: 15px;
+            border-radius: var(--radius);
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .response.success {
+            background: #dcfce7;
+            color: #166534;
+            border: 2px solid #86efac;
+        }
+        
+        .response.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #fca5a5;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 14px;
+            border-top: 1px solid var(--gray-light);
+            margin-top: 30px;
+        }
+        
+        /* Animations */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .header-left h1 {
+                justify-content: center;
+            }
+            
+            .panel-header, .panel-body {
+                padding: 20px;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .panel-title {
+                font-size: 18px;
+            }
+            
+            .panel-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .open-btn, .send-btn {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1>
+                    <i class="fas fa-sliders-h"></i>
+                    Admin Control Panel
+                </h1>
+                <p>Manage your database, Redis cache, and push notifications from one dashboard</p>
+            </div>
+            <div class="header-right">
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>All Systems Operational</span>
+                </div>
+                <div class="user-profile">
+                    <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">A</div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- Database Panel -->
+            <div class="panel-card database">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <span>Database Management</span>
+                    </div>
+                    <p class="panel-subtitle">Manage and query your SQLite database with a visual interface</p>
+                </div>
+                <div class="panel-body">
+                    <div class="db-info">
+                        <div class="info-item">
+                            <span class="info-label">Database Type</span>
+                            <span class="info-value">SQLite</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status</span>
+                            <span class="status-online">Online</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Last Backup</span>
+                            <span class="info-value">2 hours ago</span>
+                        </div>
+                    </div>
+                    <button class="open-btn" onclick="openDatabase()">
+                        <i class="fas fa-external-link-alt"></i>
+                        Open Database Manager
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Redis Panel -->
+            <div class="panel-card redis">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">
+                            <i class="fas fa-memory"></i>
+                        </div>
+                        <span>Redis Cache</span>
+                    </div>
+                    <p class="panel-subtitle">Monitor and manage your Redis in-memory data store</p>
+                </div>
+                <div class="panel-body">
+                    <div class="db-info">
+                        <div class="info-item">
+                            <span class="info-label">Cache Type</span>
+                            <span class="info-value">Redis 7.0</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status</span>
+                            <span class="status-online">Online</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Memory Used</span>
+                            <span class="info-value">142 MB / 512 MB</span>
+                        </div>
+                    </div>
+                    <button class="open-btn" onclick="openRedis()">
+                        <i class="fas fa-external-link-alt"></i>
+                        Open Redis Manager
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Notification Panel -->
+            <div class="panel-card notification">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <div class="panel-icon">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <span>Push Notifications</span>
+                    </div>
+                    <p class="panel-subtitle">Send push notifications to your app users instantly</p>
+                </div>
+                <div class="panel-body">
+                    <form class="notification-form" id="notificationForm">
+                        <div class="form-group">
+                            <label class="form-label">Recipient Type</label>
+                            <div class="radio-group">
+                                <div class="radio-option">
+                                    <input type="radio" id="allUsers" name="recipientType" value="all" checked>
+                                    <label class="radio-label" for="allUsers">
+                                        <i class="fas fa-users"></i>
+                                        All Users
+                                    </label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" id="specificUser" name="recipientType" value="specific">
+                                    <label class="radio-label" for="specificUser">
+                                        <i class="fas fa-user"></i>
+                                        Specific User
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="tokenGroup" style="display: none;">
+                            <label class="form-label">User FCM Token</label>
+                            <input type="text" class="form-input" id="fcmToken" placeholder="Enter user's FCM token">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Notification Title</label>
+                            <input type="text" class="form-input" id="notificationTitle" placeholder="Enter title" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Message</label>
+                            <textarea class="form-textarea" id="notificationBody" placeholder="Enter your message" required></textarea>
+                        </div>
+                        
+                        <button type="button" class="send-btn" onclick="sendNotification()" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Notification
+                        </button>
+                    </form>
+                    
+                    <div class="response" id="responseMessage"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Admin Control Panel v1.0 • All rights reserved • Last updated: Today</p>
+        </footer>
+    </div>
+
+    <script>
+        // Toggle token input based on recipient type
+        document.querySelectorAll('input[name="recipientType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('tokenGroup').style.display = 
+                    this.value === 'specific' ? 'flex' : 'none';
+            });
+        });
+        
+        // Open Database Manager
+        function openDatabase() {
+            window.open('https://sanjeevrae.github.io/mina-SQLite/', '_blank');
+        }
+        
+        // Open Redis Manager
+        function openRedis() {
+            window.open('https://sanjeevrae.github.io/mina-redis/', '_blank');
+        }
+        
+        // Send Notification
+        async function sendNotification() {
+            const title = document.getElementById('notificationTitle').value;
+            const body = document.getElementById('notificationBody').value;
+            const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
+            const token = document.getElementById('fcmToken').value;
+            
+            if (!title || !body) {
+                showResponse('Please enter both title and message', 'error');
+                return;
+            }
+            
+            if (recipientType === 'specific' && !token) {
+                showResponse('Please enter a FCM token for specific user', 'error');
+                return;
+            }
+            
+            // Disable send button and show loading
+            const sendBtn = document.getElementById('sendBtn');
+            const originalText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            sendBtn.disabled = true;
+            
+            // Simulate API call (replace with your actual Firebase Cloud Function URL)
+            setTimeout(() => {
+                // In a real implementation, you would call your Firebase Cloud Function here
+                // Example:
+                // const response = await fetch('YOUR_CLOUD_FUNCTION_URL', {
+                //     method: 'POST',
+                //     headers: {'Content-Type': 'application/json'},
+                //     body: JSON.stringify({title, body, token: recipientType === 'specific' ? token : null})
+                // });
+                
+                // For demo purposes, we'll simulate success
+                const success = Math.random() > 0.1; // 90% success rate for demo
+                
+                if (success) {
+                    showResponse(`✅ Notification sent successfully to ${recipientType === 'all' ? 'all users' : 'specific user'}!`, 'success');
+                    // Clear form
+                    document.getElementById('notificationTitle').value = '';
+                    document.getElementById('notificationBody').value = '';
+                    document.getElementById('fcmToken').value = '';
+                } else {
+                    showResponse('❌ Failed to send notification. Please try again.', 'error');
+                }
+                
+                // Re-enable button
+                sendBtn.innerHTML = originalText;
+                sendBtn.disabled = false;
+            }, 1500);
+        }
+        
+        // Show response message
+        function showResponse(message, type) {
+            const responseDiv = document.getElementById('responseMessage');
+            responseDiv.textContent = message;
+            responseDiv.className = `response ${type}`;
+            responseDiv.style.display = 'block';
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                responseDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Admin Control Panel loaded');
+        });
+    </script>
+</body>
+</html>
