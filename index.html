@@ -252,6 +252,112 @@
             background: #dc2626;
         }
         
+        /* Configuration Panel */
+        .config-panel {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border: 2px solid #0ea5e9;
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .config-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .config-icon {
+            width: 40px;
+            height: 40px;
+            background: #0ea5e9;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .config-status {
+            background: #ef4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .config-body {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .config-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+            color: #64748b;
+            font-size: 12px;
+        }
+        
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .config-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+        }
+        
+        .config-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3);
+        }
+        
+        .config-btn.test {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .config-help {
+            background: #fffbeb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+        }
+        
         /* Notification Panel */
         .notification-form {
             display: flex;
@@ -372,6 +478,12 @@
             border: 2px solid #fca5a5;
         }
         
+        .response.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #93c5fd;
+        }
+        
         /* Footer */
         .footer {
             text-align: center;
@@ -419,6 +531,10 @@
             .radio-group {
                 flex-direction: column;
             }
+            
+            .config-buttons {
+                flex-direction: column;
+            }
         }
         
         @media (max-width: 480px) {
@@ -436,7 +552,7 @@
                 font-size: 20px;
             }
             
-            .open-btn, .send-btn {
+            .open-btn, .send-btn, .config-btn {
                 padding: 14px;
             }
         }
@@ -456,7 +572,7 @@
             <div class="header-right">
                 <div class="status-indicator">
                     <span class="status-dot"></span>
-                    <span>All Systems Operational</span>
+                    <span id="systemStatus">All Systems Operational</span>
                 </div>
                 <div class="user-profile">
                     <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">A</div>
@@ -545,6 +661,63 @@
                     <p class="panel-subtitle">Send push notifications to your app users instantly</p>
                 </div>
                 <div class="panel-body">
+                    <!-- Google Apps Script Configuration -->
+                    <div class="config-panel">
+                        <div class="config-header">
+                            <div class="config-title">
+                                <div class="config-icon">
+                                    <i class="fab fa-google" style="color: white; font-size: 20px;"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 16px; color: #0369a1;">Google Apps Script Backend</h3>
+                                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b;">Configure your free notification server</p>
+                                </div>
+                            </div>
+                            <span id="configStatus" class="config-status">
+                                ⚠️ Not Configured
+                            </span>
+                        </div>
+                        
+                        <div class="config-body">
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
+                                    <i class="fas fa-link"></i> Google Apps Script URL
+                                </label>
+                                <input type="text" id="googleScriptUrl" class="config-input" 
+                                       value="https://script.google.com/macros/s/AKfycbyY1TlABgWJurB-B36wFW-P6U-p8940e95ar6JP-ipMPZXFnz9wyj9wBgYxtAphRv8QcA/exec" 
+                                       placeholder="Paste your Google Apps Script URL">
+                                <div class="config-hint">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Your script URL is pre-filled. Click "Test Connection" to verify.</span>
+                                </div>
+                            </div>
+                            
+                            <div class="config-buttons">
+                                <button type="button" onclick="saveGoogleScriptConfig()" class="config-btn">
+                                    <i class="fas fa-save"></i>
+                                    Save Configuration
+                                </button>
+                                <button type="button" onclick="testGoogleScript()" class="config-btn test">
+                                    <i class="fas fa-vial"></i>
+                                    Test Connection
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="config-help">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                <i class="fas fa-lightbulb" style="color: #f59e0b; font-size: 18px;"></i>
+                                <strong style="color: #92400e;">Ready to Send!</strong>
+                            </div>
+                            <ol style="margin: 0; padding-left: 20px; color: #78350f; font-size: 13px; line-height: 1.6;">
+                                <li>Click "Test Connection" to verify setup</li>
+                                <li>Fill notification details below</li>
+                                <li>Click "Send Notification"</li>
+                                <li>Check your Flutter app for notifications</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
                     <form class="notification-form" id="notificationForm">
                         <div class="form-group">
                             <label class="form-label">Recipient Type</label>
@@ -568,7 +741,10 @@
                         
                         <div class="form-group" id="tokenGroup" style="display: none;">
                             <label class="form-label">User FCM Token</label>
-                            <input type="text" class="form-input" id="fcmToken" placeholder="Enter user's FCM token">
+                            <input type="text" class="form-input" id="fcmToken" placeholder="Enter user's FCM token (get from Flutter app logs)">
+                            <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">
+                                <i class="fas fa-info-circle"></i> Get FCM token from: <code>print("FCM Token: $token");</code> in Flutter
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -588,17 +764,161 @@
                     </form>
                     
                     <div class="response" id="responseMessage"></div>
+                    
+                    <!-- Stats Section -->
+                    <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: var(--radius); border: 1px solid var(--gray-light);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="color: var(--dark); font-size: 14px;">Notifications Sent:</strong>
+                                <span id="sentCount" style="font-weight: bold; color: var(--primary); margin-left: 10px;">0</span>
+                            </div>
+                            <div>
+                                <strong style="color: var(--dark); font-size: 14px;">Last Sent:</strong>
+                                <span id="lastSent" style="color: var(--gray); margin-left: 10px; font-size: 13px;">Never</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <!-- Footer -->
         <footer class="footer">
-            <p>Admin Control Panel v1.0 • All rights reserved • Last updated: Today</p>
+            <p id="footerText">Admin Control Panel v1.0 • Configure Google Apps Script to send notifications</p>
         </footer>
     </div>
 
     <script>
+        // ============= CONFIGURATION =============
+        let GOOGLE_SCRIPT_CONFIG = {
+            url: 'https://script.google.com/macros/s/AKfycbyY1TlABgWJurB-B36wFW-P6U-p8940e95ar6JP-ipMPZXFnz9wyj9wBgYxtAphRv8QcA/exec',
+            isConfigured: false
+        };
+        
+        let NOTIFICATION_STATS = {
+            sent: 0,
+            lastSent: null
+        };
+        
+        // Load saved configuration
+        function loadConfig() {
+            try {
+                const savedConfig = localStorage.getItem('googleScriptConfig');
+                const savedStats = localStorage.getItem('notificationStats');
+                
+                if (savedConfig) {
+                    GOOGLE_SCRIPT_CONFIG = JSON.parse(savedConfig);
+                    if (GOOGLE_SCRIPT_CONFIG.url) {
+                        document.getElementById('googleScriptUrl').value = GOOGLE_SCRIPT_CONFIG.url;
+                        updateConfigStatus(true);
+                    }
+                }
+                
+                if (savedStats) {
+                    NOTIFICATION_STATS = JSON.parse(savedStats);
+                    updateStatsDisplay();
+                }
+                
+                updateFooter();
+                
+            } catch (error) {
+                console.error('Error loading config:', error);
+            }
+        }
+        
+        // Save Google Script configuration
+        function saveGoogleScriptConfig() {
+            const url = document.getElementById('googleScriptUrl').value.trim();
+            
+            if (!url) {
+                showResponse('Please enter Google Apps Script URL', 'error');
+                return;
+            }
+            
+            if (!url.includes('script.google.com') || !url.includes('/macros/s/')) {
+                showResponse('Please enter a valid Google Apps Script URL', 'error');
+                return;
+            }
+            
+            GOOGLE_SCRIPT_CONFIG.url = url;
+            GOOGLE_SCRIPT_CONFIG.isConfigured = true;
+            
+            localStorage.setItem('googleScriptConfig', JSON.stringify(GOOGLE_SCRIPT_CONFIG));
+            updateConfigStatus(true);
+            showResponse('✅ Configuration saved successfully!', 'success');
+            updateFooter();
+        }
+        
+        // Test Google Script connection
+        async function testGoogleScript() {
+            if (!GOOGLE_SCRIPT_CONFIG.isConfigured || !GOOGLE_SCRIPT_CONFIG.url) {
+                showResponse('Please save configuration first', 'error');
+                return;
+            }
+            
+            showResponse('🔍 Testing connection to Google Apps Script...', 'info');
+            
+            const testBtn = document.querySelector('.config-btn.test');
+            const originalText = testBtn.innerHTML;
+            testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+            testBtn.disabled = true;
+            
+            try {
+                const testPayload = {
+                    title: 'Connection Test',
+                    body: 'Testing Google Apps Script connection from admin panel',
+                    topic: 'all'
+                };
+                
+                const response = await fetch(GOOGLE_SCRIPT_CONFIG.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testPayload)
+                });
+                
+                const resultText = await response.text();
+                console.log('Test response:', resultText);
+                
+                let data;
+                try {
+                    data = JSON.parse(resultText);
+                } catch {
+                    data = { success: false, message: 'Invalid response from server' };
+                }
+                
+                if (data.success) {
+                    showResponse('✅ Google Apps Script is working! You can now send notifications.', 'success');
+                    updateConfigStatus(true);
+                } else {
+                    showResponse(`❌ Test failed: ${data.message || 'Unknown error'}`, 'error');
+                }
+                
+            } catch (error) {
+                showResponse(`❌ Network error: ${error.message}`, 'error');
+            } finally {
+                testBtn.innerHTML = originalText;
+                testBtn.disabled = false;
+            }
+        }
+        
+        // Update config status display
+        function updateConfigStatus(configured) {
+            const statusEl = document.getElementById('configStatus');
+            if (configured) {
+                statusEl.innerHTML = '✅ Configured';
+                statusEl.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                statusEl.style.color = 'white';
+            } else {
+                statusEl.innerHTML = '⚠️ Not Configured';
+                statusEl.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+                statusEl.style.color = 'white';
+            }
+        }
+        
+        // ============= NOTIFICATION FUNCTIONS =============
+        
         // Toggle token input based on recipient type
         document.querySelectorAll('input[name="recipientType"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -617,8 +937,14 @@
             window.open('https://sanjeevrae.github.io/mina-redis/', '_blank');
         }
         
-        // Send Notification
+        // REAL: Send Notification via Google Apps Script
         async function sendNotification() {
+            // Check if configured
+            if (!GOOGLE_SCRIPT_CONFIG.isConfigured || !GOOGLE_SCRIPT_CONFIG.url) {
+                showResponse('Please configure Google Apps Script URL first', 'error');
+                return;
+            }
+            
             const title = document.getElementById('notificationTitle').value;
             const body = document.getElementById('notificationBody').value;
             const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
@@ -640,51 +966,134 @@
             sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             sendBtn.disabled = true;
             
-            // Simulate API call (replace with your actual Firebase Cloud Function URL)
-            setTimeout(() => {
-                // In a real implementation, you would call your Firebase Cloud Function here
-                // Example:
-                // const response = await fetch('YOUR_CLOUD_FUNCTION_URL', {
-                //     method: 'POST',
-                //     headers: {'Content-Type': 'application/json'},
-                //     body: JSON.stringify({title, body, token: recipientType === 'specific' ? token : null})
-                // });
+            try {
+                // Prepare the request payload
+                const payload = {
+                    title: title,
+                    body: body
+                };
                 
-                // For demo purposes, we'll simulate success
-                const success = Math.random() > 0.1; // 90% success rate for demo
-                
-                if (success) {
-                    showResponse(`✅ Notification sent successfully to ${recipientType === 'all' ? 'all users' : 'specific user'}!`, 'success');
-                    // Clear form
-                    document.getElementById('notificationTitle').value = '';
-                    document.getElementById('notificationBody').value = '';
-                    document.getElementById('fcmToken').value = '';
+                // Add token if sending to specific user
+                if (recipientType === 'specific') {
+                    payload.token = token;
                 } else {
-                    showResponse('❌ Failed to send notification. Please try again.', 'error');
+                    payload.topic = 'all';
                 }
                 
+                console.log('📤 Sending to Google Apps Script:', GOOGLE_SCRIPT_CONFIG.url);
+                console.log('Payload:', payload);
+                
+                // Make the API call to Google Apps Script
+                const response = await fetch(GOOGLE_SCRIPT_CONFIG.url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const resultText = await response.text();
+                console.log('📥 Response:', resultText);
+                
+                let result;
+                try {
+                    result = JSON.parse(resultText);
+                } catch {
+                    result = { success: false, message: 'Invalid response from server' };
+                }
+                
+                if (result.success) {
+                    showResponse(`✅ Notification sent successfully to ${recipientType === 'all' ? 'all users' : 'specific user'}!`, 'success');
+                    
+                    // Update stats
+                    NOTIFICATION_STATS.sent++;
+                    NOTIFICATION_STATS.lastSent = new Date().toISOString();
+                    localStorage.setItem('notificationStats', JSON.stringify(NOTIFICATION_STATS));
+                    updateStatsDisplay();
+                    updateFooter();
+                    
+                    // Clear form
+                    setTimeout(() => {
+                        document.getElementById('notificationTitle').value = '';
+                        document.getElementById('notificationBody').value = '';
+                        if (recipientType === 'specific') {
+                            document.getElementById('fcmToken').value = '';
+                        }
+                    }, 1000);
+                    
+                } else {
+                    showResponse(`❌ Failed: ${result.message || 'Unknown error'}`, 'error');
+                }
+                
+            } catch (error) {
+                console.error('❌ Error:', error);
+                showResponse(`❌ Network error: ${error.message}`, 'error');
+            } finally {
                 // Re-enable button
                 sendBtn.innerHTML = originalText;
                 sendBtn.disabled = false;
-            }, 1500);
+            }
         }
+        
+        // ============= HELPER FUNCTIONS =============
         
         // Show response message
         function showResponse(message, type) {
             const responseDiv = document.getElementById('responseMessage');
-            responseDiv.textContent = message;
+            responseDiv.innerHTML = message;
             responseDiv.className = `response ${type}`;
             responseDiv.style.display = 'block';
             
-            // Auto hide after 5 seconds
-            setTimeout(() => {
-                responseDiv.style.display = 'none';
-            }, 5000);
+            // Auto hide after 5 seconds (except errors)
+            if (type !== 'error') {
+                setTimeout(() => {
+                    responseDiv.style.display = 'none';
+                }, 5000);
+            }
         }
         
-        // Initialize dashboard
+        // Update stats display
+        function updateStatsDisplay() {
+            document.getElementById('sentCount').textContent = NOTIFICATION_STATS.sent;
+            
+            if (NOTIFICATION_STATS.lastSent) {
+                const lastSentDate = new Date(NOTIFICATION_STATS.lastSent);
+                document.getElementById('lastSent').textContent = lastSentDate.toLocaleString();
+            }
+        }
+        
+        // Update footer
+        function updateFooter() {
+            const footer = document.getElementById('footerText');
+            if (GOOGLE_SCRIPT_CONFIG.isConfigured) {
+                const date = new Date().toLocaleDateString();
+                footer.innerHTML = `Admin Control Panel v1.0 • Notifications sent: ${NOTIFICATION_STATS.sent} • Last updated: ${date}`;
+            } else {
+                footer.innerHTML = `Admin Control Panel v1.0 • Configure Google Apps Script to send notifications`;
+            }
+        }
+        
+        // ============= INITIALIZATION =============
+        
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Admin Control Panel loaded');
+            console.log('🚀 Admin Control Panel loaded');
+            
+            // Load configuration
+            loadConfig();
+            
+            // Auto-save configuration since URL is pre-filled
+            if (GOOGLE_SCRIPT_CONFIG.url && !GOOGLE_SCRIPT_CONFIG.isConfigured) {
+                saveGoogleScriptConfig();
+            }
+            
+            // Show welcome message
+            setTimeout(() => {
+                if (GOOGLE_SCRIPT_CONFIG.isConfigured) {
+                    showResponse('✅ Google Apps Script is configured and ready!', 'success');
+                } else {
+                    showResponse('📝 Configure Google Apps Script URL to send real notifications', 'info');
+                }
+            }, 1000);
         });
     </script>
 </body>
