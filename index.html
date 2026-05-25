@@ -1,1100 +1,1815 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Control Panel</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-        
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --dark: #1f2937;
-            --light: #f9fafb;
-            --gray: #6b7280;
-            --gray-light: #e5e7eb;
-            --radius: 12px;
-            --shadow: 0 10px 25px rgba(0,0,0,0.1);
-            --transition: all 0.3s ease;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-            min-height: 100vh;
-            color: var(--dark);
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* Header */
-        .header {
-            background: white;
-            border-radius: var(--radius);
-            padding: 25px 30px;
-            margin-bottom: 30px;
-            box-shadow: var(--shadow);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .header-left h1 {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--dark);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .header-left p {
-            color: var(--gray);
-            margin-top: 5px;
-            font-size: 15px;
-        }
-        
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #dcfce7;
-            color: #166534;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            background: #10b981;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        /* Dashboard Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-        
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-        
-        /* Panel Cards */
-        .panel-card {
-            background: white;
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: var(--transition);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .panel-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        }
-        
-        .panel-header {
-            padding: 25px 25px 15px;
-            border-bottom: 1px solid var(--gray-light);
-        }
-        
-        .panel-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--dark);
-        }
-        
-        .panel-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-        
-        .database .panel-icon {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--secondary);
-        }
-        
-        .redis .panel-icon {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger);
-        }
-        
-        .notification .panel-icon {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary);
-        }
-        
-        .panel-subtitle {
-            color: var(--gray);
-            font-size: 14px;
-            margin-top: 8px;
-            line-height: 1.5;
-        }
-        
-        .panel-body {
-            padding: 25px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Database & Redis Panel */
-        .db-info {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            padding-bottom: 12px;
-            border-bottom: 1px dashed var(--gray-light);
-        }
-        
-        .info-label {
-            color: var(--gray);
-            font-size: 14px;
-        }
-        
-        .info-value {
-            font-weight: 600;
-            font-size: 15px;
-        }
-        
-        .status-online {
-            color: var(--secondary);
-            background: rgba(16, 185, 129, 0.1);
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        
-        .open-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px 25px;
-            border-radius: var(--radius);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            transition: var(--transition);
-            width: 100%;
-            margin-top: auto;
-        }
-        
-        .open-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-        
-        .database .open-btn {
-            background: var(--secondary);
-        }
-        
-        .database .open-btn:hover {
-            background: #0da271;
-        }
-        
-        .redis .open-btn {
-            background: var(--danger);
-        }
-        
-        .redis .open-btn:hover {
-            background: #dc2626;
-        }
-        
-        /* Configuration Panel */
-        .config-panel {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            padding: 20px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            border: 2px solid #0ea5e9;
-        }
-        
-        .config-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .config-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .config-icon {
-            width: 40px;
-            height: 40px;
-            background: #0ea5e9;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .config-status {
-            background: #ef4444;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .config-body {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-        
-        .config-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-        
-        .config-hint {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 5px;
-            color: #64748b;
-            font-size: 12px;
-        }
-        
-        .config-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .config-btn {
-            flex: 1;
-            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: var(--transition);
-        }
-        
-        .config-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(14, 165, 233, 0.3);
-        }
-        
-        .config-btn.test {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        }
-        
-        .config-help {
-            background: #fffbeb;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #f59e0b;
-        }
-        
-        /* Notification Panel */
-        .notification-form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        
-        .form-label {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--dark);
-        }
-        
-        .form-input, .form-textarea, .form-select {
-            padding: 14px;
-            border: 2px solid var(--gray-light);
-            border-radius: 8px;
-            font-size: 15px;
-            transition: var(--transition);
-        }
-        
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-        
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        
-        .radio-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 5px;
-        }
-        
-        .radio-option {
-            flex: 1;
-        }
-        
-        .radio-option input {
-            display: none;
-        }
-        
-        .radio-label {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px;
-            border: 2px solid var(--gray-light);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-weight: 500;
-            text-align: center;
-        }
-        
-        .radio-option input:checked + .radio-label {
-            border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.05);
-            color: var(--primary);
-        }
-        
-        .send-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 16px;
-            border-radius: var(--radius);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: var(--transition);
-            margin-top: 10px;
-        }
-        
-        .send-btn:hover:not(:disabled) {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-        }
-        
-        .send-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        
-        /* Response Message */
-        .response {
-            padding: 15px;
-            border-radius: var(--radius);
-            margin-top: 20px;
-            display: none;
-            animation: slideIn 0.3s ease;
-        }
-        
-        .response.success {
-            background: #dcfce7;
-            color: #166534;
-            border: 2px solid #86efac;
-        }
-        
-        .response.error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 2px solid #fca5a5;
-        }
-        
-        .response.info {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 2px solid #93c5fd;
-        }
-        
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: var(--gray);
-            font-size: 14px;
-            border-top: 1px solid var(--gray-light);
-            margin-top: 30px;
-        }
-        
-        /* Animations */
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-                padding: 20px;
-            }
-            
-            .header-left h1 {
-                justify-content: center;
-            }
-            
-            .panel-header, .panel-body {
-                padding: 20px;
-            }
-            
-            .radio-group {
-                flex-direction: column;
-            }
-            
-            .config-buttons {
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .panel-title {
-                font-size: 18px;
-            }
-            
-            .panel-icon {
-                width: 45px;
-                height: 45px;
-                font-size: 20px;
-            }
-            
-            .open-btn, .send-btn, .config-btn {
-                padding: 14px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINA Healthcare — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg-base: #060d1a;
+  --bg-surface: #0c1628;
+  --bg-card: #101e35;
+  --bg-card-hover: #142440;
+  --bg-input: #0a1525;
+  --border: rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.14);
+  --accent: #00e5c0;
+  --accent-dim: rgba(0,229,192,0.12);
+  --accent-mid: rgba(0,229,192,0.25);
+  --text-primary: #e8f0fe;
+  --text-secondary: #7a90b0;
+  --text-muted: #3d5270;
+  --danger: #ff4d6a;
+  --danger-dim: rgba(255,77,106,0.12);
+  --warning: #ffa940;
+  --warning-dim: rgba(255,169,64,0.12);
+  --success: #00e5c0;
+  --success-dim: rgba(0,229,192,0.12);
+  --info: #4d9fff;
+  --info-dim: rgba(77,159,255,0.12);
+  --sidebar-w: 240px;
+  --header-h: 60px;
+  --radius: 10px;
+  --radius-lg: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--bg-base); color: var(--text-primary); font-size: 14px; line-height: 1.5; }
+button { font-family: inherit; cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: inherit; outline: none; }
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* ── LOGIN SCREEN ── */
+#login-screen {
+  position: fixed; inset: 0; background: var(--bg-base);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+  flex-direction: column; gap: 0;
+}
+#login-screen::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,229,192,0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.login-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 48px; width: 420px; position: relative;
+}
+.login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 36px; justify-content: center; }
+.login-logo-icon {
+  width: 44px; height: 44px; background: var(--accent);
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: var(--bg-base); font-weight: 700; line-height: 1;
+}
+.login-logo-text { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+.login-logo-text span { color: var(--accent); }
+.login-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.login-card p { color: var(--text-secondary); font-size: 13px; margin-bottom: 28px; }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.form-group input {
+  width: 100%; padding: 11px 14px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-size: 13px; font-family: 'DM Mono', monospace;
+  transition: border-color 0.15s;
+}
+.form-group input:focus { border-color: var(--accent); }
+.form-group input::placeholder { color: var(--text-muted); }
+.form-hint { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+.btn-primary {
+  width: 100%; padding: 12px; background: var(--accent); color: var(--bg-base);
+  border-radius: var(--radius); font-size: 14px; font-weight: 600;
+  transition: all 0.15s; margin-top: 8px;
+}
+.btn-primary:hover { background: #00ffd5; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.login-error {
+  background: var(--danger-dim); border: 1px solid rgba(255,77,106,0.2);
+  border-radius: var(--radius); padding: 10px 14px; color: var(--danger);
+  font-size: 13px; margin-top: 14px; display: none;
+}
+
+/* ── MAIN LAYOUT ── */
+#app { display: none; height: 100vh; overflow: hidden; }
+#app.visible { display: flex; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: var(--sidebar-w); background: var(--bg-surface);
+  border-right: 1px solid var(--border); display: flex; flex-direction: column;
+  flex-shrink: 0; height: 100vh; overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 20px 20px 16px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo-icon {
+  width: 34px; height: 34px; background: var(--accent); border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; color: var(--bg-base); font-weight: 700;
+}
+.sidebar-logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+.sidebar-logo-text span { color: var(--accent); }
+.sidebar-badge {
+  font-size: 10px; background: var(--accent-dim); color: var(--accent);
+  padding: 2px 7px; border-radius: 20px; margin-left: auto; font-weight: 500;
+}
+.sidebar-section { padding: 20px 12px 8px; }
+.sidebar-section-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); padding: 0 8px; margin-bottom: 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 10px;
+  border-radius: 8px; cursor: pointer; color: var(--text-secondary);
+  font-size: 13.5px; font-weight: 450; transition: all 0.15s; position: relative;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-primary); }
+.nav-item.active { background: var(--accent-dim); color: var(--accent); }
+.nav-item .ti { font-size: 17px; flex-shrink: 0; }
+.nav-item .badge {
+  margin-left: auto; min-width: 20px; height: 18px; padding: 0 5px;
+  background: var(--accent); color: var(--bg-base);
+  border-radius: 9px; font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-item .badge.red { background: var(--danger); }
+.sidebar-footer {
+  margin-top: auto; padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-user {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: 8px; background: var(--bg-card);
+}
+.sidebar-user-avatar {
+  width: 30px; height: 30px; border-radius: 8px; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--bg-base); flex-shrink: 0;
+}
+.sidebar-user-info { flex: 1; overflow: hidden; }
+.sidebar-user-name { font-size: 12px; font-weight: 600; }
+.sidebar-user-role { font-size: 11px; color: var(--accent); }
+
+/* ── MAIN CONTENT ── */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── TOPBAR ── */
+.topbar {
+  height: var(--header-h); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 24px; gap: 16px;
+  background: var(--bg-surface); flex-shrink: 0;
+}
+.topbar-title { font-size: 16px; font-weight: 600; flex: 1; }
+.topbar-search {
+  display: flex; align-items: center; gap: 8px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px;
+  width: 240px;
+}
+.topbar-search input {
+  background: none; border: none; color: var(--text-primary);
+  font-size: 13px; width: 100%;
+}
+.topbar-search input::placeholder { color: var(--text-muted); }
+.topbar-search .ti { color: var(--text-muted); font-size: 16px; }
+.topbar-btn {
+  width: 36px; height: 36px; background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary); transition: all 0.15s; font-size: 17px;
+}
+.topbar-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.topbar-status {
+  display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 6px var(--accent); animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* ── PAGE CONTENT ── */
+.page-content { flex: 1; overflow-y: auto; padding: 24px; }
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── STAT CARDS ── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px; position: relative; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.stat-card:hover { border-color: var(--border-hover); }
+.stat-card::after {
+  content: ''; position: absolute; top: 0; right: 0;
+  width: 80px; height: 80px; border-radius: 50%;
+  transform: translate(20px, -30px); opacity: 0.08;
+}
+.stat-card.teal::after { background: var(--accent); }
+.stat-card.blue::after { background: var(--info); }
+.stat-card.red::after { background: var(--danger); }
+.stat-card.orange::after { background: var(--warning); }
+.stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+.stat-value { font-size: 30px; font-weight: 600; line-height: 1; margin-bottom: 10px; letter-spacing: -1px; }
+.stat-change {
+  font-size: 12px; display: flex; align-items: center; gap: 4px;
+}
+.stat-change.up { color: var(--accent); }
+.stat-change.down { color: var(--danger); }
+.stat-icon {
+  position: absolute; top: 18px; right: 18px;
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.stat-icon.teal { background: var(--accent-dim); color: var(--accent); }
+.stat-icon.blue { background: var(--info-dim); color: var(--info); }
+.stat-icon.red { background: var(--danger-dim); color: var(--danger); }
+.stat-icon.orange { background: var(--warning-dim); color: var(--warning); }
+
+/* ── CHARTS GRID ── */
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+.chart-card.full { grid-column: 1 / -1; }
+.chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.chart-title { font-size: 14px; font-weight: 600; }
+.chart-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.chart-legend { display: flex; gap: 14px; font-size: 12px; color: var(--text-secondary); }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+
+/* ── TABLE ── */
+.table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+.table-header { padding: 18px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.table-header-title { font-size: 15px; font-weight: 600; flex: 1; }
+.search-box {
+  display: flex; align-items: center; gap: 8px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: 8px; padding: 7px 11px; width: 220px;
+}
+.search-box input { background: none; border: none; color: var(--text-primary); font-size: 13px; width: 100%; }
+.search-box input::placeholder { color: var(--text-muted); }
+.search-box .ti { color: var(--text-muted); font-size: 15px; }
+.filter-select {
+  background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 11px; color: var(--text-secondary); font-size: 13px;
+  appearance: none; cursor: pointer;
+}
+.btn-sm {
+  padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; gap: 6px; transition: all 0.15s;
+}
+.btn-accent { background: var(--accent); color: var(--bg-base); }
+.btn-accent:hover { background: #00ffd5; }
+.btn-ghost {
+  background: transparent; border: 1px solid var(--border); color: var(--text-secondary);
+}
+.btn-ghost:hover { border-color: var(--border-hover); color: var(--text-primary); background: rgba(255,255,255,0.04); }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 11px 16px; text-align: left; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.02);
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,0.025); }
+tbody td { padding: 13px 16px; font-size: 13px; color: var(--text-secondary); }
+tbody td:first-child { color: var(--text-primary); }
+.user-cell { display: flex; align-items: center; gap: 10px; }
+.user-avatar {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
+}
+.user-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.user-email { font-size: 11px; color: var(--text-muted); }
+
+/* ── BADGES ── */
+.badge {
+  padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 4px; text-transform: capitalize;
+}
+.badge.doctor { background: var(--info-dim); color: var(--info); }
+.badge.patient { background: var(--accent-dim); color: var(--accent); }
+.badge.admin { background: rgba(163,119,255,0.15); color: #a377ff; }
+.badge.active { background: var(--success-dim); color: var(--success); }
+.badge.inactive { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+.badge.confirmed { background: var(--accent-dim); color: var(--accent); }
+.badge.pending { background: var(--warning-dim); color: var(--warning); }
+.badge.cancelled { background: var(--danger-dim); color: var(--danger); }
+.badge.completed { background: var(--info-dim); color: var(--info); }
+
+/* ── ROLE SELECTOR ── */
+.role-select {
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 7px; padding: 5px 8px; color: var(--text-primary);
+  font-size: 12px; cursor: pointer; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.role-select:hover { border-color: var(--border-hover); }
+.action-btn {
+  width: 28px; height: 28px; border-radius: 7px; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 15px;
+  transition: all 0.15s; background: transparent; border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer;
+}
+.action-btn:hover { border-color: var(--border-hover); color: var(--text-primary); background: rgba(255,255,255,0.05); }
+.action-btn.danger:hover { border-color: rgba(255,77,106,0.4); color: var(--danger); background: var(--danger-dim); }
+
+/* ── PAGINATION ── */
+.pagination {
+  padding: 14px 20px; display: flex; align-items: center; gap: 8px;
+  border-top: 1px solid var(--border); justify-content: flex-end;
+}
+.page-btn {
+  width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; background: transparent; border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+}
+.page-btn:hover, .page-btn.active { background: var(--accent-dim); border-color: rgba(0,229,192,0.3); color: var(--accent); }
+.page-info { font-size: 12px; color: var(--text-muted); flex: 1; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 500;
+  display: none; align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 16px; width: 480px; max-width: 95vw;
+  max-height: 85vh; overflow-y: auto;
+}
+.modal-header {
+  padding: 20px 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close {
+  width: 30px; height: 30px; border-radius: 7px; background: var(--bg-card);
+  border: 1px solid var(--border); display: flex; align-items: center;
+  justify-content: center; cursor: pointer; font-size: 16px; color: var(--text-secondary);
+  transition: all 0.15s;
+}
+.modal-close:hover { color: var(--text-primary); }
+.modal-body { padding: 24px; }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.detail-item label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+.detail-item p { font-size: 13px; color: var(--text-primary); font-family: 'DM Mono', monospace; }
+.detail-item.full { grid-column: 1 / -1; }
+.modal-user-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.modal-avatar { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; flex-shrink: 0; }
+.modal-user-meta h3 { font-size: 17px; font-weight: 600; }
+.modal-user-meta p { font-size: 13px; color: var(--text-secondary); margin-top: 3px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ── TOAST ── */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 16px; font-size: 13px; display: flex; align-items: center; gap: 10px;
+  min-width: 280px; animation: slide-up 0.2s ease;
+}
+.toast.success { border-left: 3px solid var(--accent); }
+.toast.error { border-left: 3px solid var(--danger); }
+.toast.info { border-left: 3px solid var(--info); }
+@keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ── LOADING ── */
+.loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 48px; color: var(--text-muted); flex-direction: column; gap: 14px;
+}
+.spinner {
+  width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center; padding: 48px; color: var(--text-muted);
+}
+.empty-state .ti { font-size: 40px; display: block; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 14px; }
+
+/* ── LOG CARDS ── */
+.log-list { display: flex; flex-direction: column; }
+.log-item {
+  display: flex; align-items: flex-start; gap: 14px; padding: 14px 20px;
+  border-bottom: 1px solid var(--border); transition: background 0.1s;
+}
+.log-item:hover { background: rgba(255,255,255,0.02); }
+.log-item:last-child { border-bottom: none; }
+.log-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.log-dot.teal { background: var(--accent); }
+.log-dot.blue { background: var(--info); }
+.log-dot.red { background: var(--danger); }
+.log-dot.orange { background: var(--warning); }
+.log-dot.gray { background: var(--text-muted); }
+.log-body { flex: 1; }
+.log-title { font-size: 13px; color: var(--text-primary); margin-bottom: 3px; }
+.log-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 12px; }
+.log-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+/* ── SETTINGS ── */
+.settings-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 16px; }
+.settings-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.settings-section p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.settings-row:last-child { border-bottom: none; padding-bottom: 0; }
+.settings-label { font-size: 13px; font-weight: 500; }
+.settings-sublabel { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.settings-value { font-size: 12px; color: var(--text-secondary); font-family: 'DM Mono', monospace; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+.toggle { position: relative; width: 38px; height: 22px; flex-shrink: 0; }
+.toggle input { display: none; }
+.toggle-track {
+  position: absolute; inset: 0; background: rgba(255,255,255,0.1);
+  border-radius: 11px; cursor: pointer; transition: background 0.2s;
+}
+.toggle input:checked + .toggle-track { background: var(--accent); }
+.toggle-thumb {
+  position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+  background: #fff; border-radius: 50%; transition: transform 0.2s;
+  pointer-events: none;
+}
+.toggle input:checked ~ .toggle-thumb { transform: translateX(16px); }
+
+/* ── ANALYTICS ── */
+.analytics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+.mini-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mini-stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+.mini-stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+.mini-stat-value { font-size: 22px; font-weight: 600; letter-spacing: -0.5px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+  .analytics-grid { grid-template-columns: 1fr; }
+}
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <h1>
-                    <i class="fas fa-sliders-h"></i>
-                    Admin Control Panel
-                </h1>
-                <p>Manage your database, Redis cache, and push notifications from one dashboard</p>
-            </div>
-            <div class="header-right">
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    <span id="systemStatus">All Systems Operational</span>
-                </div>
-                <div class="user-profile">
-                    <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">A</div>
-                </div>
-            </div>
-        </header>
-        
-        <!-- Dashboard Grid -->
-        <div class="dashboard-grid">
-            
-            <!-- Database Panel -->
-            <div class="panel-card database">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <div class="panel-icon">
-                            <i class="fas fa-database"></i>
-                        </div>
-                        <span>Database Management</span>
-                    </div>
-                    <p class="panel-subtitle">Manage and query your SQLite database with a visual interface</p>
-                </div>
-                <div class="panel-body">
-                    <div class="db-info">
-                        <div class="info-item">
-                            <span class="info-label">Database Type</span>
-                            <span class="info-value">SQLite</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Status</span>
-                            <span class="status-online">Online</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Last Backup</span>
-                            <span class="info-value">2 hours ago</span>
-                        </div>
-                    </div>
-                    <button class="open-btn" onclick="openDatabase()">
-                        <i class="fas fa-external-link-alt"></i>
-                        Open Database Manager
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Redis Panel -->
-            <div class="panel-card redis">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <div class="panel-icon">
-                            <i class="fas fa-memory"></i>
-                        </div>
-                        <span>Redis Cache</span>
-                    </div>
-                    <p class="panel-subtitle">Monitor and manage your Redis in-memory data store</p>
-                </div>
-                <div class="panel-body">
-                    <div class="db-info">
-                        <div class="info-item">
-                            <span class="info-label">Cache Type</span>
-                            <span class="info-value">Redis 7.0</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Status</span>
-                            <span class="status-online">Online</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Memory Used</span>
-                            <span class="info-value">142 MB / 512 MB</span>
-                        </div>
-                    </div>
-                    <button class="open-btn" onclick="openRedis()">
-                        <i class="fas fa-external-link-alt"></i>
-                        Open Redis Manager
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Notification Panel -->
-            <div class="panel-card notification">
-                <div class="panel-header">
-                    <div class="panel-title">
-                        <div class="panel-icon">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <span>Push Notifications</span>
-                    </div>
-                    <p class="panel-subtitle">Send push notifications to your app users instantly</p>
-                </div>
-                <div class="panel-body">
-                    <!-- Google Apps Script Configuration -->
-                    <div class="config-panel">
-                        <div class="config-header">
-                            <div class="config-title">
-                                <div class="config-icon">
-                                    <i class="fab fa-google" style="color: white; font-size: 20px;"></i>
-                                </div>
-                                <div>
-                                    <h3 style="margin: 0; font-size: 16px; color: #0369a1;">Google Apps Script Backend</h3>
-                                    <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b;">Configure your free notification server</p>
-                                </div>
-                            </div>
-                            <span id="configStatus" class="config-status">
-                                ⚠️ Not Configured
-                            </span>
-                        </div>
-                        
-                        <div class="config-body">
-                            <div style="margin-bottom: 15px;">
-                                <label style="display: block; font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 8px;">
-                                    <i class="fas fa-link"></i> Google Apps Script URL
-                                </label>
-                                <input type="text" id="googleScriptUrl" class="config-input" 
-                                       value="https://script.google.com/macros/s/AKfycbyY1TlABgWJurB-B36wFW-P6U-p8940e95ar6JP-ipMPZXFnz9wyj9wBgYxtAphRv8QcA/exec" 
-                                       placeholder="Paste your Google Apps Script URL">
-                                <div class="config-hint">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span>Your script URL is pre-filled. Click "Test Connection" to verify.</span>
-                                </div>
-                            </div>
-                            
-                            <div class="config-buttons">
-                                <button type="button" onclick="saveGoogleScriptConfig()" class="config-btn">
-                                    <i class="fas fa-save"></i>
-                                    Save Configuration
-                                </button>
-                                <button type="button" onclick="testGoogleScript()" class="config-btn test">
-                                    <i class="fas fa-vial"></i>
-                                    Test Connection
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <div class="config-help">
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                <i class="fas fa-lightbulb" style="color: #f59e0b; font-size: 18px;"></i>
-                                <strong style="color: #92400e;">Ready to Send!</strong>
-                            </div>
-                            <ol style="margin: 0; padding-left: 20px; color: #78350f; font-size: 13px; line-height: 1.6;">
-                                <li>Click "Test Connection" to verify setup</li>
-                                <li>Fill notification details below</li>
-                                <li>Click "Send Notification"</li>
-                                <li>Check your Flutter app for notifications</li>
-                            </ol>
-                        </div>
-                    </div>
-                    
-                    <form class="notification-form" id="notificationForm">
-                        <div class="form-group">
-                            <label class="form-label">Recipient Type</label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" id="allUsers" name="recipientType" value="all" checked>
-                                    <label class="radio-label" for="allUsers">
-                                        <i class="fas fa-users"></i>
-                                        All Users
-                                    </label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="specificUser" name="recipientType" value="specific">
-                                    <label class="radio-label" for="specificUser">
-                                        <i class="fas fa-user"></i>
-                                        Specific User
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group" id="tokenGroup" style="display: none;">
-                            <label class="form-label">User FCM Token</label>
-                            <input type="text" class="form-input" id="fcmToken" placeholder="Enter user's FCM token (get from Flutter app logs)">
-                            <div style="font-size: 12px; color: #6b7280; margin-top: 5px;">
-                                <i class="fas fa-info-circle"></i> Get FCM token from: <code>print("FCM Token: $token");</code> in Flutter
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Notification Title</label>
-                            <input type="text" class="form-input" id="notificationTitle" placeholder="Enter title" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Message</label>
-                            <textarea class="form-textarea" id="notificationBody" placeholder="Enter your message" required></textarea>
-                        </div>
-                        
-                        <button type="button" class="send-btn" onclick="sendNotification()" id="sendBtn">
-                            <i class="fas fa-paper-plane"></i>
-                            Send Notification
-                        </button>
-                    </form>
-                    
-                    <div class="response" id="responseMessage"></div>
-                    
-                    <!-- Stats Section -->
-                    <div style="margin-top: 20px; padding: 15px; background: #f8fafc; border-radius: var(--radius); border: 1px solid var(--gray-light);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong style="color: var(--dark); font-size: 14px;">Notifications Sent:</strong>
-                                <span id="sentCount" style="font-weight: bold; color: var(--primary); margin-left: 10px;">0</span>
-                            </div>
-                            <div>
-                                <strong style="color: var(--dark); font-size: 14px;">Last Sent:</strong>
-                                <span id="lastSent" style="color: var(--gray); margin-left: 10px; font-size: 13px;">Never</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
+<!-- ── LOGIN SCREEN ── -->
+<div id="login-screen">
+
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">M</div>
+      <div class="login-logo-text">MINA <span>Admin</span></div>
+    </div>
+    <h2>Connect to Dashboard</h2>
+    <p>Enter your Supabase service role key to access the admin panel</p>
+    <div class="form-group">
+      <label>Supabase Project URL</label>
+      <input type="text" id="sb-url" value="https://rbpvuzllpwcmwnxlukkq.supabase.co" placeholder="https://xxx.supabase.co">
+    </div>
+    <div class="form-group">
+      <label>Service Role Key</label>
+      <input type="password" id="sb-key" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJicHZ1emxscHdjbXdueGx1a2txIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NzMyNDExNywiZXhwIjoyMDgyOTAwMTE3fQ.KKcsQuSrzyNOi53bwVYseB-0IhJRmcMuUxLLc8g6ekU" placeholder="eyJ...">
+      <div class="form-hint">Found in Supabase Dashboard → Project Settings → API</div>
+    </div>
+    <button class="btn-primary" id="login-btn" onclick="connectSupabase()">Connect to Supabase</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">M</div>
+      <div class="sidebar-logo-text">MINA <span>Health</span></div>
+      <div class="sidebar-badge">Admin</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('overview', this)"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item" onclick="showPage('analytics', this)"><i class="ti ti-chart-line"></i>Analytics</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Management</div>
+      <div class="nav-item" onclick="showPage('users', this)"><i class="ti ti-users"></i>All Users <span class="badge" id="nav-user-count">–</span></div>
+      <div class="nav-item" onclick="showPage('doctors', this)"><i class="ti ti-stethoscope"></i>Doctors <span class="badge" id="nav-doctor-count">–</span></div>
+      <div class="nav-item" onclick="showPage('patients', this)"><i class="ti ti-user-heart"></i>Patients <span class="badge" id="nav-patient-count">–</span></div>
+      <div class="nav-item" onclick="showPage('appointments', this)"><i class="ti ti-calendar-event"></i>Appointments</div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">System</div>
+      <div class="nav-item" onclick="showPage('logs', this)"><i class="ti ti-file-text"></i>Activity Logs</div>
+      <div class="nav-item" onclick="showPage('settings', this)"><i class="ti ti-settings"></i>Settings</div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-user-avatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name">Administrator</div>
+          <div class="sidebar-user-role">Super Admin</div>
         </div>
-        
-        <!-- Footer -->
-        <footer class="footer">
-            <p id="footerText">Admin Control Panel v1.0 • Configure Google Apps Script to send notifications</p>
-        </footer>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard Overview</div>
+      <div class="topbar-search">
+        <i class="ti ti-search"></i>
+        <input type="text" id="global-search" placeholder="Search users, records...">
+      </div>
+      <button class="topbar-btn" onclick="refreshCurrentPage()" title="Refresh"><i class="ti ti-refresh"></i></button>
+      <button class="topbar-btn" title="Notifications"><i class="ti ti-bell"></i></button>
+      <div class="topbar-status"><div class="status-dot"></div> Live</div>
     </div>
 
-    <script>
-        // ============= CONFIGURATION =============
-        let GOOGLE_SCRIPT_CONFIG = {
-            url: 'https://script.google.com/macros/s/AKfycbyY1TlABgWJurB-B36wFW-P6U-p8940e95ar6JP-ipMPZXFnz9wyj9wBgYxtAphRv8QcA/exec',
-            isConfigured: false
-        };
-        
-        let NOTIFICATION_STATS = {
-            sent: 0,
-            lastSent: null
-        };
-        
-        // Load saved configuration
-        function loadConfig() {
-            try {
-                const savedConfig = localStorage.getItem('googleScriptConfig');
-                const savedStats = localStorage.getItem('notificationStats');
-                
-                if (savedConfig) {
-                    GOOGLE_SCRIPT_CONFIG = JSON.parse(savedConfig);
-                    if (GOOGLE_SCRIPT_CONFIG.url) {
-                        document.getElementById('googleScriptUrl').value = GOOGLE_SCRIPT_CONFIG.url;
-                        updateConfigStatus(true);
-                    }
-                }
-                
-                if (savedStats) {
-                    NOTIFICATION_STATS = JSON.parse(savedStats);
-                    updateStatsDisplay();
-                }
-                
-                updateFooter();
-                
-            } catch (error) {
-                console.error('Error loading config:', error);
-            }
-        }
-        
-        // Save Google Script configuration
-        function saveGoogleScriptConfig() {
-            const url = document.getElementById('googleScriptUrl').value.trim();
-            
-            if (!url) {
-                showResponse('Please enter Google Apps Script URL', 'error');
-                return;
-            }
-            
-            if (!url.includes('script.google.com') || !url.includes('/macros/s/')) {
-                showResponse('Please enter a valid Google Apps Script URL', 'error');
-                return;
-            }
-            
-            GOOGLE_SCRIPT_CONFIG.url = url;
-            GOOGLE_SCRIPT_CONFIG.isConfigured = true;
-            
-            localStorage.setItem('googleScriptConfig', JSON.stringify(GOOGLE_SCRIPT_CONFIG));
-            updateConfigStatus(true);
-            showResponse('✅ Configuration saved successfully!', 'success');
-            updateFooter();
-        }
-        
-        // Test Google Script connection
-        async function testGoogleScript() {
-            if (!GOOGLE_SCRIPT_CONFIG.isConfigured || !GOOGLE_SCRIPT_CONFIG.url) {
-                showResponse('Please save configuration first', 'error');
-                return;
-            }
-            
-            showResponse('🔍 Testing connection to Google Apps Script...', 'info');
-            
-            const testBtn = document.querySelector('.config-btn.test');
-            const originalText = testBtn.innerHTML;
-            testBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
-            testBtn.disabled = true;
-            
-            try {
-                const testPayload = {
-                    title: 'Connection Test',
-                    body: 'Testing Google Apps Script connection from admin panel',
-                    topic: 'all'
-                };
-                
-                const response = await fetch(GOOGLE_SCRIPT_CONFIG.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(testPayload)
-                });
-                
-                const resultText = await response.text();
-                console.log('Test response:', resultText);
-                
-                let data;
-                try {
-                    data = JSON.parse(resultText);
-                } catch {
-                    data = { success: false, message: 'Invalid response from server' };
-                }
-                
-                if (data.success) {
-                    showResponse('✅ Google Apps Script is working! You can now send notifications.', 'success');
-                    updateConfigStatus(true);
-                } else {
-                    showResponse(`❌ Test failed: ${data.message || 'Unknown error'}`, 'error');
-                }
-                
-            } catch (error) {
-                showResponse(`❌ Network error: ${error.message}`, 'error');
-            } finally {
-                testBtn.innerHTML = originalText;
-                testBtn.disabled = false;
-            }
-        }
-        
-        // Update config status display
-        function updateConfigStatus(configured) {
-            const statusEl = document.getElementById('configStatus');
-            if (configured) {
-                statusEl.innerHTML = '✅ Configured';
-                statusEl.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
-                statusEl.style.color = 'white';
-            } else {
-                statusEl.innerHTML = '⚠️ Not Configured';
-                statusEl.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
-                statusEl.style.color = 'white';
-            }
-        }
-        
-        // ============= NOTIFICATION FUNCTIONS =============
-        
-        // Toggle token input based on recipient type
-        document.querySelectorAll('input[name="recipientType"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.getElementById('tokenGroup').style.display = 
-                    this.value === 'specific' ? 'flex' : 'none';
-            });
+    <!-- Page Content -->
+    <div class="page-content">
+
+      <!-- ── OVERVIEW PAGE ── -->
+      <div class="page active" id="page-overview">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card teal">
+            <div class="stat-icon teal"><i class="ti ti-users"></i></div>
+            <div class="stat-label">Total Users</div>
+            <div class="stat-value" id="stat-total">–</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> <span id="stat-total-sub">Loading...</span></div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-icon blue"><i class="ti ti-stethoscope"></i></div>
+            <div class="stat-label">Doctors</div>
+            <div class="stat-value" id="stat-doctors">–</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> <span id="stat-doctors-sub">Loading...</span></div>
+          </div>
+          <div class="stat-card teal">
+            <div class="stat-icon teal"><i class="ti ti-user-heart"></i></div>
+            <div class="stat-label">Patients</div>
+            <div class="stat-value" id="stat-patients">–</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> <span id="stat-patients-sub">Loading...</span></div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-icon orange"><i class="ti ti-calendar-event"></i></div>
+            <div class="stat-label">Appointments</div>
+            <div class="stat-value" id="stat-appts">–</div>
+            <div class="stat-change up"><i class="ti ti-trending-up"></i> <span id="stat-appts-sub">Loading...</span></div>
+          </div>
+        </div>
+
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">User Registrations</div><div class="chart-subtitle">Last 30 days</div></div>
+            </div>
+            <div style="position:relative;height:220px;"><canvas id="regChart" role="img" aria-label="User registrations over last 30 days">User registration trend.</canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div><div class="chart-title">User Role Distribution</div><div class="chart-subtitle">By account type</div></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:24px;height:220px;">
+              <div style="position:relative;height:180px;width:180px;flex-shrink:0;"><canvas id="roleChart" role="img" aria-label="Role distribution pie chart">Role distribution.</canvas></div>
+              <div id="role-legend" style="flex:1;font-size:13px;"></div>
+            </div>
+          </div>
+          <div class="chart-card full">
+            <div class="chart-header">
+              <div><div class="chart-title">Appointment Activity</div><div class="chart-subtitle">By status this month</div></div>
+            </div>
+            <div style="position:relative;height:200px;"><canvas id="apptChart" role="img" aria-label="Appointment activity chart">Appointment activity.</canvas></div>
+          </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-header-title">Recent Users</div>
+            <button class="btn-sm btn-ghost" onclick="showPage('users', document.querySelector('[onclick*=\"users\"]'))"><i class="ti ti-arrow-right"></i> View all</button>
+          </div>
+          <table><thead><tr>
+            <th>User</th><th>Role</th><th>Status</th><th>Joined</th>
+          </tr></thead>
+          <tbody id="recent-users-tbody"><tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ── USERS PAGE ── -->
+      <div class="page" id="page-users">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-header-title">All Users</div>
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="users-search" placeholder="Search name or email..." oninput="filterUsersTable()"></div>
+            <select class="filter-select" id="users-role-filter" onchange="filterUsersTable()">
+              <option value="">All Roles</option>
+              <option value="doctor">Doctor</option>
+              <option value="patient">Patient</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button class="btn-sm btn-ghost" onclick="exportUsers()"><i class="ti ti-download"></i> Export</button>
+          </div>
+          <table><thead><tr>
+            <th>User</th><th>Role</th><th>Phone</th><th>Status</th><th>Joined</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody></table>
+          <div class="pagination">
+            <div class="page-info" id="users-page-info"></div>
+            <div id="users-pagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DOCTORS PAGE ── -->
+      <div class="page" id="page-doctors">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-header-title">Doctors</div>
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="doctors-search" placeholder="Search doctors..." oninput="filterDoctorsTable()"></div>
+          </div>
+          <table><thead><tr>
+            <th>Doctor</th><th>Specialization</th><th>License #</th><th>Status</th><th>Joined</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="doctors-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody></table>
+          <div class="pagination"><div class="page-info" id="doctors-page-info"></div><div id="doctors-pagination"></div></div>
+        </div>
+      </div>
+
+      <!-- ── PATIENTS PAGE ── -->
+      <div class="page" id="page-patients">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-header-title">Patients</div>
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="patients-search" placeholder="Search patients..." oninput="filterPatientsTable()"></div>
+          </div>
+          <table><thead><tr>
+            <th>Patient</th><th>Date of Birth</th><th>Blood Type</th><th>Status</th><th>Registered</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="patients-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody></table>
+          <div class="pagination"><div class="page-info" id="patients-page-info"></div><div id="patients-pagination"></div></div>
+        </div>
+      </div>
+
+      <!-- ── APPOINTMENTS PAGE ── -->
+      <div class="page" id="page-appointments">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-header-title">Appointments</div>
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="appt-search" placeholder="Search appointments..." oninput="filterApptsTable()"></div>
+            <select class="filter-select" id="appt-status-filter" onchange="filterApptsTable()">
+              <option value="">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+          <table><thead><tr>
+            <th>Patient</th><th>Doctor</th><th>Date & Time</th><th>Type</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="appts-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div></div></td></tr></tbody></table>
+          <div class="pagination"><div class="page-info" id="appts-page-info"></div><div id="appts-pagination"></div></div>
+        </div>
+      </div>
+
+      <!-- ── ANALYTICS PAGE ── -->
+      <div class="page" id="page-analytics">
+        <div class="stats-grid" style="margin-bottom:24px;">
+          <div class="stat-card teal">
+            <div class="stat-icon teal"><i class="ti ti-users"></i></div>
+            <div class="stat-label">Total Registered</div>
+            <div class="stat-value" id="an-total">–</div>
+          </div>
+          <div class="stat-card blue">
+            <div class="stat-icon blue"><i class="ti ti-calendar-check"></i></div>
+            <div class="stat-label">Completed Appts</div>
+            <div class="stat-value" id="an-completed">–</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-icon orange"><i class="ti ti-clock"></i></div>
+            <div class="stat-label">Pending Appts</div>
+            <div class="stat-value" id="an-pending">–</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-icon red"><i class="ti ti-x"></i></div>
+            <div class="stat-label">Cancelled Appts</div>
+            <div class="stat-value" id="an-cancelled">–</div>
+          </div>
+        </div>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header"><div><div class="chart-title">User Growth Over Time</div></div></div>
+            <div style="position:relative;height:260px;"><canvas id="growthChart" role="img" aria-label="User growth chart">User growth.</canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-header"><div><div class="chart-title">Appointment Status Breakdown</div></div></div>
+            <div style="position:relative;height:260px;"><canvas id="apptBreakChart" role="img" aria-label="Appointment breakdown">Appointment breakdown.</canvas></div>
+          </div>
+          <div class="chart-card full">
+            <div class="chart-header"><div><div class="chart-title">Monthly Appointment Volume</div></div></div>
+            <div style="position:relative;height:220px;"><canvas id="monthlyChart" role="img" aria-label="Monthly appointments">Monthly appointments.</canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOGS PAGE ── -->
+      <div class="page" id="page-logs">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-header-title">Activity Logs</div>
+            <div class="search-box"><i class="ti ti-search"></i><input type="text" id="logs-search" placeholder="Search logs..." oninput="filterLogs()"></div>
+            <select class="filter-select" id="logs-type-filter" onchange="filterLogs()">
+              <option value="">All Events</option>
+              <option value="auth">Auth</option>
+              <option value="user">User</option>
+              <option value="appointment">Appointments</option>
+              <option value="system">System</option>
+            </select>
+            <button class="btn-sm btn-ghost" onclick="loadLogs()"><i class="ti ti-refresh"></i> Refresh</button>
+          </div>
+          <div class="log-list" id="logs-list">
+            <div class="loading"><div class="spinner"></div><span>Loading logs...</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS PAGE ── -->
+      <div class="page" id="page-settings">
+        <div class="settings-section">
+          <h3>Connection</h3>
+          <p>Current Supabase connection details</p>
+          <div class="settings-row">
+            <div><div class="settings-label">Project URL</div><div class="settings-sublabel">Supabase endpoint</div></div>
+            <div class="settings-value" id="settings-url">–</div>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Connection Status</div></div>
+            <span class="badge active">● Connected</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Last Sync</div></div>
+            <div class="settings-value" id="settings-sync">–</div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Discovered Tables</h3>
+          <p>Tables found in your database</p>
+          <div id="settings-tables">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Database Stats</h3>
+          <p>Live statistics from your Supabase database</p>
+          <div id="settings-db-stats">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Danger Zone</h3>
+          <p>Administrative actions</p>
+          <div class="settings-row">
+            <div><div class="settings-label">Disconnect</div><div class="settings-sublabel">Return to login screen</div></div>
+            <button class="btn-sm" style="background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,77,106,0.3);border-radius:8px;" onclick="disconnect()"><i class="ti ti-plug-off"></i> Disconnect</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ── USER DETAIL MODAL ── -->
+<div class="modal-overlay" id="user-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">User Details</div>
+      <button class="modal-close" onclick="closeModal('user-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body" id="user-modal-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm btn-ghost" onclick="closeModal('user-modal')">Close</button>
+      <button class="btn-sm btn-accent" id="save-role-btn"><i class="ti ti-check"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST CONTAINER ── -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// CONFIG & STATE
+// ═══════════════════════════════════════════════════
+let SUPABASE_URL = '';
+let SUPABASE_KEY = '';
+let currentPage = 'overview';
+let allUsers = [];
+let allDoctors = [];
+let allPatients = [];
+let allAppointments = [];
+let allLogs = [];
+let discoveredTables = [];
+let charts = {};
+const PAGE_SIZE = 15;
+let userPage = 1, doctorPage = 1, patientPage = 1, apptPage = 1;
+
+// ═══════════════════════════════════════════════════
+// SUPABASE API HELPERS
+// ═══════════════════════════════════════════════════
+async function sbFetch(path, opts = {}) {
+  const url = SUPABASE_URL + path;
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SUPABASE_KEY}`,
+    'Content-Type': 'application/json',
+    'Prefer': 'return=representation',
+    'X-Client-Info': 'mina-admin/1.0',
+    ...opts.headers
+  };
+  const res = await fetch(url, { ...opts, headers, mode: 'cors' });
+  return res;
+}
+
+async function sbGet(table, params = '') {
+  const res = await sbFetch(`/rest/v1/${table}?${params}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+async function sbPatch(table, match, data) {
+  const res = await sbFetch(`/rest/v1/${table}?${match}`, {
+    method: 'PATCH', body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function getAuthUsers() {
+  const res = await sbFetch('/auth/v1/admin/users?page=1&per_page=1000');
+  if (!res.ok) return null;
+  const data = await res.json();
+  return data.users || data;
+}
+
+async function tableExists(name) {
+  try {
+    const res = await sbFetch(`/rest/v1/${name}?limit=1`);
+    return res.ok;
+  } catch (_) {
+    return false;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// CONNECT
+// ═══════════════════════════════════════════════════
+async function connectSupabase() {
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  SUPABASE_URL = document.getElementById('sb-url').value.trim().replace(/\/$/, '');
+  SUPABASE_KEY = document.getElementById('sb-key').value.trim();
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    showLoginError('Please fill in all fields.'); return;
+  }
+  if (!SUPABASE_KEY.startsWith('eyJ')) {
+    showLoginError('Key looks invalid — it should start with eyJ...'); return;
+  }
+  btn.disabled = true; btn.textContent = 'Connecting…';
+  err.style.display = 'none';
+  try {
+    // Use auth health endpoint as connection test (no auth required)
+    let connected = false;
+    try {
+      const healthRes = await fetch(SUPABASE_URL + '/auth/v1/health', { method: 'GET' });
+      connected = healthRes.ok;
+    } catch(_) {}
+    // Fallback: try hitting auth users to verify the key itself
+    if (!connected) {
+      try {
+        const testRes = await sbFetch('/auth/v1/admin/users?page=1&per_page=1');
+        connected = testRes.status !== 0; // any HTTP response means server is reachable
+      } catch(_) {}
+    }
+    if (!connected) {
+      showLoginError('Cannot reach Supabase. Check the URL is correct and you have internet access.');
+      return;
+    }
+    // Verify key has admin access
+    const authTest = await sbFetch('/auth/v1/admin/users?page=1&per_page=1');
+    if (authTest.status === 401 || authTest.status === 403) {
+      showLoginError('Key rejected — make sure you\'re using the service_role key, not the anon key.');
+      return;
+    }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    document.getElementById('settings-url').textContent = SUPABASE_URL;
+    document.getElementById('settings-sync').textContent = new Date().toLocaleString();
+    await discoverTables();
+    await loadAllData();
+  } catch(e) {
+    showLoginError('Error: ' + e.message + '. Try opening this file via a local server (not file://).');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Connect to Supabase';
+  }
+}
+
+function showLoginError(msg) {
+  const err = document.getElementById('login-error');
+  err.textContent = msg; err.style.display = 'block';
+}
+
+function disconnect() {
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════
+// TABLE DISCOVERY
+// ═══════════════════════════════════════════════════
+const KNOWN_TABLES = [
+  'users','profiles','user_profiles',
+  'patients','patient_profiles','patient_details',
+  'doctors','doctor_profiles','doctor_details',
+  'appointments','consultations',
+  'medical_records','prescriptions',
+  'activity_logs','audit_logs','logs',
+  'notifications','messages',
+  'symptoms','diagnoses','treatments'
+];
+
+async function discoverTables() {
+  discoveredTables = [];
+  const checks = KNOWN_TABLES.map(async t => {
+    const exists = await tableExists(t);
+    if (exists) discoveredTables.push(t);
+  });
+  await Promise.allSettled(checks);
+  renderSettingsTables();
+}
+
+function renderSettingsTables() {
+  const el = document.getElementById('settings-tables');
+  if (!discoveredTables.length) {
+    el.innerHTML = '<div class="empty-state"><i class="ti ti-database-off"></i><p>No tables discovered</p></div>';
+    return;
+  }
+  el.innerHTML = discoveredTables.map(t => `
+    <div class="settings-row">
+      <div class="settings-label"><i class="ti ti-table" style="margin-right:8px;color:var(--accent)"></i>${t}</div>
+      <span class="badge active">Found</span>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// LOAD ALL DATA
+// ═══════════════════════════════════════════════════
+async function loadAllData() {
+  await Promise.allSettled([
+    loadUsers(),
+    loadDoctors(),
+    loadPatients(),
+    loadAppointments(),
+    loadLogs()
+  ]);
+  renderOverview();
+  renderAnalytics();
+}
+
+async function loadUsers() {
+  // Step 1: fetch profile/users table rows (this is where `role` lives)
+  const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
+  let profileRows = [];
+  if (profileTable) {
+    const data = await sbGet(profileTable, 'limit=2000&order=created_at.desc');
+    profileRows = data || [];
+  }
+
+  // Step 2: fetch auth users (for email, confirmation status, last_sign_in_at)
+  const authUsers = await getAuthUsers();
+
+  if (authUsers && authUsers.length > 0) {
+    // Build map from profile rows keyed by id OR user_id
+    const profileMap = {};
+    profileRows.forEach(p => {
+      const key = p.id || p.user_id;
+      if (key) profileMap[key] = p;
+    });
+    // Merge: auth user as base, spread profile on top so role/name from profile wins
+    allUsers = authUsers.map(u => {
+      const prof = profileMap[u.id] || {};
+      return { ...u, ...prof, email: u.email || prof.email, id: u.id };
+    });
+    // Include profile rows that have no matching auth user (edge case)
+    profileRows.forEach(p => {
+      const key = p.id || p.user_id;
+      if (key && !allUsers.find(u => u.id === key)) {
+        allUsers.push(p);
+      }
+    });
+  } else if (profileRows.length > 0) {
+    // Fallback: no auth access, use profile table directly
+    allUsers = profileRows;
+  }
+
+  updateNavBadges();
+}
+
+async function loadDoctors() {
+  const table = discoveredTables.find(t => ['doctors','doctor_profiles','doctor_details'].includes(t));
+  if (table) {
+    const data = await sbGet(table, 'limit=1000&order=created_at.desc');
+    allDoctors = data || [];
+  } else {
+    allDoctors = allUsers.filter(u => getRole(u) === 'doctor');
+  }
+  updateNavBadges();
+}
+
+async function loadPatients() {
+  const table = discoveredTables.find(t => ['patients','patient_profiles','patient_details'].includes(t));
+  if (table) {
+    const data = await sbGet(table, 'limit=1000&order=created_at.desc');
+    allPatients = data || [];
+  } else {
+    allPatients = allUsers.filter(u => getRole(u) === 'patient');
+  }
+  updateNavBadges();
+}
+
+async function loadAppointments() {
+  const table = discoveredTables.find(t => ['appointments','consultations'].includes(t));
+  if (table) {
+    const data = await sbGet(table, 'limit=1000&order=created_at.desc');
+    allAppointments = data || [];
+  }
+}
+
+async function loadLogs() {
+  const table = discoveredTables.find(t => ['activity_logs','audit_logs','logs'].includes(t));
+  if (table) {
+    const data = await sbGet(table, 'limit=200&order=created_at.desc');
+    allLogs = data || [];
+  } else {
+    // Synthesize logs from user data
+    allLogs = synthesizeLogs();
+  }
+  renderLogs(allLogs);
+}
+
+function synthesizeLogs() {
+  const logs = [];
+  allUsers.slice(0, 50).forEach(u => {
+    logs.push({
+      id: u.id,
+      event: 'user_registered',
+      description: `New user registered: ${u.email || u.full_name || 'Unknown'}`,
+      user_id: u.id,
+      created_at: u.created_at,
+      type: 'user'
+    });
+  });
+  allAppointments.slice(0, 50).forEach(a => {
+    logs.push({
+      id: a.id,
+      event: 'appointment_created',
+      description: `Appointment scheduled — Status: ${a.status || 'pending'}`,
+      user_id: a.patient_id || a.user_id,
+      created_at: a.created_at,
+      type: 'appointment'
+    });
+  });
+  return logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+}
+
+function updateNavBadges() {
+  const setB = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  const doctorCount = allDoctors.length || allUsers.filter(u => getRole(u) === 'doctor').length;
+  const patientCount = allPatients.length || allUsers.filter(u => getRole(u) === 'patient').length;
+  setB('nav-user-count', allUsers.length);
+  setB('nav-doctor-count', doctorCount);
+  setB('nav-patient-count', patientCount);
+}
+
+// ═══════════════════════════════════════════════════
+// ROLE HELPERS
+// ═══════════════════════════════════════════════════
+function getRole(u) {
+  const r = u.role || u.user_role || (u.user_metadata && u.user_metadata.role) || (u.raw_user_meta_data && u.raw_user_meta_data.role) || 'patient';
+  return String(r).toLowerCase();
+}
+
+// Returns the DB-format role value (uppercase if that's what the DB uses)
+function toDbRole(role) {
+  const sample = allUsers.find(u => u.role);
+  if (sample && sample.role === String(sample.role).toUpperCase()) return role.toUpperCase();
+  return role;
+}
+
+function getName(u) {
+  return u.full_name || u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() ||
+    (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) ||
+    (u.raw_user_meta_data && u.raw_user_meta_data.full_name) ||
+    u.email?.split('@')[0] || 'Unknown';
+}
+
+function getInitials(u) {
+  const n = getName(u);
+  return n.split(' ').map(x => x[0] || '').join('').substring(0, 2).toUpperCase() || '?';
+}
+
+function avatarColor(str) {
+  const colors = [
+    ['#00e5c0','#060d1a'],['#4d9fff','#060d1a'],['#a377ff','#fff'],
+    ['#ffa940','#060d1a'],['#ff4d6a','#fff'],['#00c896','#060d1a']
+  ];
+  let h = 0; for (const c of String(str ?? '')) h = (h*31 + c.charCodeAt(0)) % colors.length;
+  return colors[h];
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER OVERVIEW
+// ═══════════════════════════════════════════════════
+function renderOverview() {
+  const doctors = allUsers.filter(u => getRole(u) === 'doctor').length || allDoctors.length;
+  const patients = allUsers.filter(u => getRole(u) === 'patient').length || allPatients.length;
+  const total = allUsers.length;
+  const appts = allAppointments.length;
+  document.getElementById('stat-total').textContent = total.toLocaleString();
+  document.getElementById('stat-doctors').textContent = doctors.toLocaleString();
+  document.getElementById('stat-patients').textContent = patients.toLocaleString();
+  document.getElementById('stat-appts').textContent = appts.toLocaleString();
+  document.getElementById('stat-total-sub').textContent = `${total} registered`;
+  document.getElementById('stat-doctors-sub').textContent = `${doctors} verified`;
+  document.getElementById('stat-patients-sub').textContent = `${patients} active`;
+  document.getElementById('stat-appts-sub').textContent = `${appts} total`;
+  renderRecentUsers();
+  renderRegistrationChart();
+  renderRoleChart();
+  renderApptChart();
+  renderSettingsDbStats();
+}
+
+function renderRecentUsers() {
+  const tbody = document.getElementById('recent-users-tbody');
+  const recent = [...allUsers].sort((a,b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 8);
+  if (!recent.length) { tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="ti ti-users-off"></i><p>No users found</p></div></td></tr>`; return; }
+  tbody.innerHTML = recent.map(u => {
+    const [bg, fg] = avatarColor(u.id);
+    const role = getRole(u);
+    return `<tr>
+      <td><div class="user-cell">
+        <div class="user-avatar" style="background:${bg};color:${fg}">${getInitials(u)}</div>
+        <div><div class="user-name">${getName(u)}</div><div class="user-email">${u.email || '—'}</div></div>
+      </div></td>
+      <td><span class="badge ${role}">${role}</span></td>
+      <td><span class="badge ${u.email_confirmed_at || u.confirmed_at ? 'active' : 'inactive'}">${u.email_confirmed_at || u.confirmed_at ? 'Active' : 'Unconfirmed'}</span></td>
+      <td>${fmtDate(u.created_at)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// USERS TABLE
+// ═══════════════════════════════════════════════════
+function renderUsersTable() {
+  const search = document.getElementById('users-search').value.toLowerCase();
+  const roleF = document.getElementById('users-role-filter').value;
+  let filtered = allUsers.filter(u => {
+    const n = getName(u).toLowerCase(), e = (u.email || '').toLowerCase();
+    const matchSearch = !search || n.includes(search) || e.includes(search);
+    const matchRole = !roleF || getRole(u) === roleF;
+    return matchSearch && matchRole;
+  });
+  renderPaginatedTable('users', filtered, userPage, renderUserRow, ['User','Role','Phone','Status','Joined','Actions']);
+}
+
+function renderUserRow(u) {
+  const [bg, fg] = avatarColor(u.id);
+  const role = getRole(u); // always lowercase
+  const phone = u.phone || u.phone_number || (u.user_metadata && u.user_metadata.phone) || '—';
+  const active = !!(u.email_confirmed_at || u.confirmed_at || u.phone_confirmed_at);
+  return `<tr>
+    <td><div class="user-cell">
+      <div class="user-avatar" style="background:${bg};color:${fg}">${getInitials(u)}</div>
+      <div><div class="user-name">${getName(u)}</div><div class="user-email">${u.email || '—'}</div></div>
+    </div></td>
+    <td>
+      <select class="role-select" data-uid="${u.id}" onchange="handleRoleChange(this)">
+        <option value="patient" ${role==='patient'?'selected':''}>Patient</option>
+        <option value="doctor" ${role==='doctor'?'selected':''}>Doctor</option>
+        <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
+      </select>
+    </td>
+    <td>${phone}</td>
+    <td><span class="badge ${active?'active':'inactive'}">${active?'Active':'Unconfirmed'}</span></td>
+    <td>${fmtDate(u.created_at)}</td>
+    <td style="white-space:nowrap">
+      <button class="action-btn" onclick="showUserModal('${u.id}')" title="View details"><i class="ti ti-eye"></i></button>
+    </td>
+  </tr>`;
+}
+
+function getProfileTable() {
+  return discoveredTables.find(t => ['profiles','user_profiles','users'].includes(t)) || 'profiles';
+}
+
+function filterUsersTable() { userPage = 1; renderUsersTable(); }
+
+// ═══════════════════════════════════════════════════
+// DOCTORS TABLE
+// ═══════════════════════════════════════════════════
+function renderDoctorsTable() {
+  const search = document.getElementById('doctors-search').value.toLowerCase();
+  let data = allDoctors.length ? allDoctors : allUsers.filter(u => getRole(u) === 'doctor');
+  let filtered = data.filter(u => {
+    const n = getName(u).toLowerCase(), e = (u.email||'').toLowerCase();
+    return !search || n.includes(search) || e.includes(search);
+  });
+  renderPaginatedTable('doctors', filtered, doctorPage, renderDoctorRow, ['Doctor','Specialization','License #','Status','Joined','Actions']);
+}
+
+function renderDoctorRow(u) {
+  const [bg, fg] = avatarColor(u.id);
+  const spec = u.specialization || u.specialty || u.department || (u.user_metadata&&u.user_metadata.specialization) || '—';
+  const lic = u.license_number || u.license_no || u.registration_number || '—';
+  return `<tr>
+    <td><div class="user-cell">
+      <div class="user-avatar" style="background:${bg};color:${fg}">${getInitials(u)}</div>
+      <div><div class="user-name">${getName(u)}</div><div class="user-email">${u.email||'—'}</div></div>
+    </div></td>
+    <td>${spec}</td>
+    <td><span style="font-family:'DM Mono',monospace;font-size:12px">${lic}</span></td>
+    <td><span class="badge ${u.is_verified||u.verified?'active':'inactive'}">${u.is_verified||u.verified?'Verified':'Pending'}</span></td>
+    <td>${fmtDate(u.created_at)}</td>
+    <td><button class="action-btn" onclick="showUserModal('${u.id}','doctor')" title="View"><i class="ti ti-eye"></i></button></td>
+  </tr>`;
+}
+
+function filterDoctorsTable() { doctorPage = 1; renderDoctorsTable(); }
+
+// ═══════════════════════════════════════════════════
+// PATIENTS TABLE
+// ═══════════════════════════════════════════════════
+function renderPatientsTable() {
+  const search = document.getElementById('patients-search').value.toLowerCase();
+  let data = allPatients.length ? allPatients : allUsers.filter(u => getRole(u) === 'patient');
+  let filtered = data.filter(u => {
+    const n = getName(u).toLowerCase(), e = (u.email||'').toLowerCase();
+    return !search || n.includes(search) || e.includes(search);
+  });
+  renderPaginatedTable('patients', filtered, patientPage, renderPatientRow, ['Patient','Date of Birth','Blood Type','Status','Registered','Actions']);
+}
+
+function renderPatientRow(u) {
+  const [bg, fg] = avatarColor(u.id);
+  const dob = u.date_of_birth || u.dob || u.birth_date || '—';
+  const blood = u.blood_type || u.blood_group || (u.user_metadata&&u.user_metadata.blood_type) || '—';
+  return `<tr>
+    <td><div class="user-cell">
+      <div class="user-avatar" style="background:${bg};color:${fg}">${getInitials(u)}</div>
+      <div><div class="user-name">${getName(u)}</div><div class="user-email">${u.email||'—'}</div></div>
+    </div></td>
+    <td>${dob !== '—' ? fmtDate(dob) : '—'}</td>
+    <td>${blood !== '—' ? `<span class="badge patient">${blood}</span>` : '—'}</td>
+    <td><span class="badge active">Active</span></td>
+    <td>${fmtDate(u.created_at)}</td>
+    <td><button class="action-btn" onclick="showUserModal('${u.id}','patient')" title="View"><i class="ti ti-eye"></i></button></td>
+  </tr>`;
+}
+
+function filterPatientsTable() { patientPage = 1; renderPatientsTable(); }
+
+// ═══════════════════════════════════════════════════
+// APPOINTMENTS TABLE
+// ═══════════════════════════════════════════════════
+function renderApptsTable() {
+  const search = document.getElementById('appt-search').value.toLowerCase();
+  const statusF = document.getElementById('appt-status-filter').value;
+  let filtered = allAppointments.filter(a => {
+    const matchSearch = !search || JSON.stringify(a).toLowerCase().includes(search);
+    const matchStatus = !statusF || (a.status||'').toLowerCase() === statusF;
+    return matchSearch && matchStatus;
+  });
+  renderPaginatedTable('appts', filtered, apptPage, renderApptRow, ['Patient','Doctor','Date & Time','Type','Status','Actions']);
+}
+
+function renderApptRow(a) {
+  const patientUser = allUsers.find(u => u.id === (a.patient_id || a.user_id));
+  const doctorUser = allUsers.find(u => u.id === a.doctor_id) || allDoctors.find(d => d.id === a.doctor_id);
+  const pName = patientUser ? getName(patientUser) : (a.patient_name || a.patient_id || '—');
+  const dName = doctorUser ? getName(doctorUser) : (a.doctor_name || a.doctor_id || '—');
+  const apptDate = a.appointment_date || a.date || a.scheduled_at || a.created_at;
+  const type = a.consultation_type || a.appointment_type || a.type || 'General';
+  const status = (a.status || 'pending').toLowerCase();
+  return `<tr>
+    <td>${pName}</td>
+    <td>${dName}</td>
+    <td><span style="font-family:'DM Mono',monospace;font-size:12px">${apptDate ? fmtDateTime(apptDate) : '—'}</span></td>
+    <td>${type}</td>
+    <td><span class="badge ${status}">${status}</span></td>
+    <td><button class="action-btn" title="View details"><i class="ti ti-eye"></i></button></td>
+  </tr>`;
+}
+
+function filterApptsTable() { apptPage = 1; renderApptsTable(); }
+
+// ═══════════════════════════════════════════════════
+// PAGINATION HELPER
+// ═══════════════════════════════════════════════════
+function renderPaginatedTable(key, data, page, rowFn, headers) {
+  const tbody = document.getElementById(`${key}-tbody`);
+  const pInfo = document.getElementById(`${key}-page-info`);
+  const pCont = document.getElementById(`${key}-pagination`);
+  const total = data.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const start = (page - 1) * PAGE_SIZE;
+  const slice = data.slice(start, start + PAGE_SIZE);
+  if (!slice.length) {
+    tbody.innerHTML = `<tr><td colspan="${headers.length}"><div class="empty-state"><i class="ti ti-inbox"></i><p>No records found</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(rowFn).join('');
+  }
+  if (pInfo) pInfo.textContent = `Showing ${Math.min(start+1, total)}–${Math.min(start+PAGE_SIZE, total)} of ${total}`;
+  if (pCont) {
+    let html = '';
+    if (page > 1) html += `<button class="page-btn" onclick="changePage('${key}',${page-1})"><i class="ti ti-chevron-left" style="font-size:13px"></i></button>`;
+    for (let p = Math.max(1, page-2); p <= Math.min(totalPages, page+2); p++) {
+      html += `<button class="page-btn ${p===page?'active':''}" onclick="changePage('${key}',${p})">${p}</button>`;
+    }
+    if (page < totalPages) html += `<button class="page-btn" onclick="changePage('${key}',${page+1})"><i class="ti ti-chevron-right" style="font-size:13px"></i></button>`;
+    pCont.innerHTML = html;
+  }
+}
+
+function changePage(key, p) {
+  if (key === 'users') { userPage = p; renderUsersTable(); }
+  else if (key === 'doctors') { doctorPage = p; renderDoctorsTable(); }
+  else if (key === 'patients') { patientPage = p; renderPatientsTable(); }
+  else if (key === 'appts') { apptPage = p; renderApptsTable(); }
+}
+
+// ═══════════════════════════════════════════════════
+// ROLE CHANGE
+// ═══════════════════════════════════════════════════
+async function handleRoleChange(sel) {
+  const uid = sel.dataset.uid;
+  const newRole = sel.value; // lowercase from option value
+  const dbRole = toDbRole(newRole); // match DB casing (UPPERCASE)
+  sel.disabled = true;
+  try {
+    let ok = false;
+    // 1. Update the profile/users table — try id= then user_id= match
+    const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
+    if (profileTable) {
+      ok = await sbPatch(profileTable, `id=eq.${uid}`, { role: dbRole });
+      if (!ok) ok = await sbPatch(profileTable, `user_id=eq.${uid}`, { role: dbRole });
+    }
+    // 2. Also update auth user metadata as secondary store
+    try {
+      await sbFetch(`/auth/v1/admin/users/${uid}`, {
+        method: 'PUT',
+        body: JSON.stringify({ user_metadata: { role: dbRole } })
+      });
+    } catch(_) {}
+
+    if (ok) {
+      // Update local state
+      const user = allUsers.find(u => u.id === uid);
+      if (user) {
+        user.role = dbRole;
+        user.user_role = dbRole;
+        if (user.user_metadata) user.user_metadata.role = dbRole;
+        if (user.raw_user_meta_data) user.raw_user_meta_data.role = dbRole;
+      }
+      updateNavBadges();
+      showToast(`Role updated to ${newRole}`, 'success');
+    } else {
+      // Revert dropdown
+      sel.value = getRole(allUsers.find(u => u.id === uid) || {});
+      showToast('Failed to update role — check table permissions', 'error');
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    sel.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// USER MODAL
+// ═══════════════════════════════════════════════════
+function showUserModal(uid, type) {
+  const user = allUsers.find(u => u.id === uid) || allDoctors.find(u => u.id === uid) || allPatients.find(u => u.id === uid);
+  if (!user) return;
+  const [bg, fg] = avatarColor(user.id);
+  const role = getRole(user);
+  const meta = user.user_metadata || user.raw_user_meta_data || {};
+  document.getElementById('user-modal-body').innerHTML = `
+    <div class="modal-user-header">
+      <div class="modal-avatar" style="background:${bg};color:${fg}">${getInitials(user)}</div>
+      <div class="modal-user-meta">
+        <h3>${getName(user)}</h3>
+        <p>${user.email || '—'}</p>
+        <div style="margin-top:8px;display:flex;gap:8px;">
+          <span class="badge ${role}">${role}</span>
+          <span class="badge ${user.email_confirmed_at?'active':'inactive'}">${user.email_confirmed_at?'Verified':'Unverified'}</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-item"><label>User ID</label><p style="font-size:11px">${user.id || '—'}</p></div>
+      <div class="detail-item"><label>Phone</label><p>${user.phone || meta.phone || '—'}</p></div>
+      <div class="detail-item"><label>Registered</label><p>${fmtDateTime(user.created_at)}</p></div>
+      <div class="detail-item"><label>Last Sign In</label><p>${fmtDateTime(user.last_sign_in_at)}</p></div>
+      ${meta.specialization ? `<div class="detail-item"><label>Specialization</label><p>${meta.specialization}</p></div>` : ''}
+      ${user.license_number ? `<div class="detail-item"><label>License No</label><p>${user.license_number}</p></div>` : ''}
+      ${user.date_of_birth ? `<div class="detail-item"><label>Date of Birth</label><p>${fmtDate(user.date_of_birth)}</p></div>` : ''}
+      ${user.blood_type ? `<div class="detail-item"><label>Blood Type</label><p>${user.blood_type}</p></div>` : ''}
+      <div class="detail-item full">
+        <label>Change Role</label>
+        <select class="role-select" id="modal-role" style="width:100%;padding:9px 12px;font-size:14px">
+          <option value="patient" ${role==='patient'?'selected':''}>Patient</option>
+          <option value="doctor" ${role==='doctor'?'selected':''}>Doctor</option>
+          <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
+        </select>
+      </div>
+    </div>
+  `;
+  document.getElementById('save-role-btn').onclick = async () => {
+    const newRole = document.getElementById('modal-role').value; // lowercase
+    const dbRole = toDbRole(newRole);
+    const saveBtn = document.getElementById('save-role-btn');
+    saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+    try {
+      let ok = false;
+      const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
+      if (profileTable) {
+        ok = await sbPatch(profileTable, `id=eq.${user.id}`, { role: dbRole });
+        if (!ok) ok = await sbPatch(profileTable, `user_id=eq.${user.id}`, { role: dbRole });
+      }
+      // Also update auth metadata
+      try {
+        await sbFetch(`/auth/v1/admin/users/${user.id}`, {
+          method: 'PUT', body: JSON.stringify({ user_metadata: { role: dbRole } })
         });
-        
-        // Open Database Manager
-        function openDatabase() {
-            window.open('https://sanjeevrae.github.io/mina-SQLite/', '_blank');
+      } catch(_) {}
+      if (ok) {
+        const u = allUsers.find(x => x.id === user.id);
+        if (u) {
+          u.role = dbRole; u.user_role = dbRole;
+          if (u.user_metadata) u.user_metadata.role = dbRole;
+          if (u.raw_user_meta_data) u.raw_user_meta_data.role = dbRole;
         }
-        
-        // Open Redis Manager
-        function openRedis() {
-            window.open('https://sanjeevrae.github.io/mina-redis/', '_blank');
-        }
-        
-        // REAL: Send Notification via Google Apps Script
-        async function sendNotification() {
-            // Check if configured
-            if (!GOOGLE_SCRIPT_CONFIG.isConfigured || !GOOGLE_SCRIPT_CONFIG.url) {
-                showResponse('Please configure Google Apps Script URL first', 'error');
-                return;
-            }
-            
-            const title = document.getElementById('notificationTitle').value;
-            const body = document.getElementById('notificationBody').value;
-            const recipientType = document.querySelector('input[name="recipientType"]:checked').value;
-            const token = document.getElementById('fcmToken').value;
-            
-            if (!title || !body) {
-                showResponse('Please enter both title and message', 'error');
-                return;
-            }
-            
-            if (recipientType === 'specific' && !token) {
-                showResponse('Please enter a FCM token for specific user', 'error');
-                return;
-            }
-            
-            // Disable send button and show loading
-            const sendBtn = document.getElementById('sendBtn');
-            const originalText = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
-            sendBtn.disabled = true;
-            
-            try {
-                // Prepare the request payload
-                const payload = {
-                    title: title,
-                    body: body
-                };
-                
-                // Add token if sending to specific user
-                if (recipientType === 'specific') {
-                    payload.token = token;
-                } else {
-                    payload.topic = 'all';
-                }
-                
-                console.log('📤 Sending to Google Apps Script:', GOOGLE_SCRIPT_CONFIG.url);
-                console.log('Payload:', payload);
-                
-                // Make the API call to Google Apps Script
-                const response = await fetch(GOOGLE_SCRIPT_CONFIG.url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const resultText = await response.text();
-                console.log('📥 Response:', resultText);
-                
-                let result;
-                try {
-                    result = JSON.parse(resultText);
-                } catch {
-                    result = { success: false, message: 'Invalid response from server' };
-                }
-                
-                if (result.success) {
-                    showResponse(`✅ Notification sent successfully to ${recipientType === 'all' ? 'all users' : 'specific user'}!`, 'success');
-                    
-                    // Update stats
-                    NOTIFICATION_STATS.sent++;
-                    NOTIFICATION_STATS.lastSent = new Date().toISOString();
-                    localStorage.setItem('notificationStats', JSON.stringify(NOTIFICATION_STATS));
-                    updateStatsDisplay();
-                    updateFooter();
-                    
-                    // Clear form
-                    setTimeout(() => {
-                        document.getElementById('notificationTitle').value = '';
-                        document.getElementById('notificationBody').value = '';
-                        if (recipientType === 'specific') {
-                            document.getElementById('fcmToken').value = '';
-                        }
-                    }, 1000);
-                    
-                } else {
-                    showResponse(`❌ Failed: ${result.message || 'Unknown error'}`, 'error');
-                }
-                
-            } catch (error) {
-                console.error('❌ Error:', error);
-                showResponse(`❌ Network error: ${error.message}`, 'error');
-            } finally {
-                // Re-enable button
-                sendBtn.innerHTML = originalText;
-                sendBtn.disabled = false;
-            }
-        }
-        
-        // ============= HELPER FUNCTIONS =============
-        
-        // Show response message
-        function showResponse(message, type) {
-            const responseDiv = document.getElementById('responseMessage');
-            responseDiv.innerHTML = message;
-            responseDiv.className = `response ${type}`;
-            responseDiv.style.display = 'block';
-            
-            // Auto hide after 5 seconds (except errors)
-            if (type !== 'error') {
-                setTimeout(() => {
-                    responseDiv.style.display = 'none';
-                }, 5000);
-            }
-        }
-        
-        // Update stats display
-        function updateStatsDisplay() {
-            document.getElementById('sentCount').textContent = NOTIFICATION_STATS.sent;
-            
-            if (NOTIFICATION_STATS.lastSent) {
-                const lastSentDate = new Date(NOTIFICATION_STATS.lastSent);
-                document.getElementById('lastSent').textContent = lastSentDate.toLocaleString();
-            }
-        }
-        
-        // Update footer
-        function updateFooter() {
-            const footer = document.getElementById('footerText');
-            if (GOOGLE_SCRIPT_CONFIG.isConfigured) {
-                const date = new Date().toLocaleDateString();
-                footer.innerHTML = `Admin Control Panel v1.0 • Notifications sent: ${NOTIFICATION_STATS.sent} • Last updated: ${date}`;
-            } else {
-                footer.innerHTML = `Admin Control Panel v1.0 • Configure Google Apps Script to send notifications`;
-            }
-        }
-        
-        // ============= INITIALIZATION =============
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Admin Control Panel loaded');
-            
-            // Load configuration
-            loadConfig();
-            
-            // Auto-save configuration since URL is pre-filled
-            if (GOOGLE_SCRIPT_CONFIG.url && !GOOGLE_SCRIPT_CONFIG.isConfigured) {
-                saveGoogleScriptConfig();
-            }
-            
-            // Show welcome message
-            setTimeout(() => {
-                if (GOOGLE_SCRIPT_CONFIG.isConfigured) {
-                    showResponse('✅ Google Apps Script is configured and ready!', 'success');
-                } else {
-                    showResponse('📝 Configure Google Apps Script URL to send real notifications', 'info');
-                }
-            }, 1000);
-        });
-    </script>
+        updateNavBadges();
+        if (currentPage === 'users') renderUsersTable();
+        showToast(`Role updated to ${newRole}`, 'success');
+        closeModal('user-modal');
+      } else {
+        showToast('Failed to update role — check table permissions', 'error');
+      }
+    } catch(e) {
+      showToast('Error: ' + e.message, 'error');
+    } finally {
+      saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
+    }
+  };
+  document.getElementById('user-modal').classList.add('open');
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ═══════════════════════════════════════════════════
+// LOGS
+// ═══════════════════════════════════════════════════
+function renderLogs(logs) {
+  const el = document.getElementById('logs-list');
+  if (!logs.length) { el.innerHTML = '<div class="empty-state"><i class="ti ti-file-off"></i><p>No logs found</p></div>'; return; }
+  const colorMap = { user: 'teal', auth: 'blue', appointment: 'orange', error: 'red', system: 'gray' };
+  const iconMap = { user: 'ti-user-plus', auth: 'ti-lock', appointment: 'ti-calendar', error: 'ti-alert-triangle', system: 'ti-server' };
+  el.innerHTML = logs.slice(0, 100).map(l => {
+    const type = (l.type || l.event_type || l.category || 'system').toLowerCase();
+    const color = colorMap[type] || 'gray';
+    const desc = l.description || l.message || l.details || l.event || JSON.stringify(l).substring(0, 80);
+    return `<div class="log-item">
+      <div class="log-dot ${color}"></div>
+      <div class="log-body">
+        <div class="log-title">${desc}</div>
+        <div class="log-meta">
+          <span>${l.event || l.event_type || type}</span>
+          ${l.user_id ? `<span>User: ${l.user_id.substring(0,8)}…</span>` : ''}
+        </div>
+      </div>
+      <div class="log-time">${fmtDateTime(l.created_at)}</div>
+    </div>`;
+  }).join('');
+}
+
+function filterLogs() {
+  const search = document.getElementById('logs-search').value.toLowerCase();
+  const typeF = document.getElementById('logs-type-filter').value;
+  const filtered = allLogs.filter(l => {
+    const str = JSON.stringify(l).toLowerCase();
+    const matchSearch = !search || str.includes(search);
+    const matchType = !typeF || (l.type||l.event_type||'').toLowerCase().includes(typeF);
+    return matchSearch && matchType;
+  });
+  renderLogs(filtered);
+}
+
+// ═══════════════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════════════
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function renderRegistrationChart() {
+  destroyChart('regChart');
+  const last30 = getLast30Days();
+  const counts = last30.map(d => allUsers.filter(u => {
+    if (!u.created_at) return false;
+    return u.created_at.substring(0, 10) === d;
+  }).length);
+  charts['regChart'] = new Chart(document.getElementById('regChart'), {
+    type: 'line',
+    data: {
+      labels: last30.map(d => d.slice(5)),
+      datasets: [{
+        label: 'Registrations', data: counts,
+        borderColor: '#00e5c0', backgroundColor: 'rgba(0,229,192,0.07)',
+        borderWidth: 2, tension: 0.4, fill: true,
+        pointBackgroundColor: '#00e5c0', pointRadius: 3, pointHoverRadius: 5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a90b0', maxTicksLimit: 8, font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a90b0', font: { size: 11 }, stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function renderRoleChart() {
+  destroyChart('roleChart');
+  const doctors = allUsers.filter(u => getRole(u) === 'doctor').length || allDoctors.length;
+  const patients = allUsers.filter(u => getRole(u) === 'patient').length || allPatients.length;
+  const admins = allUsers.filter(u => getRole(u) === 'admin').length;
+  const other = allUsers.length - doctors - patients - admins;
+  const total = allUsers.length;
+  charts['roleChart'] = new Chart(document.getElementById('roleChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Patients','Doctors','Admins','Other'],
+      datasets: [{
+        data: [patients, doctors, admins, Math.max(0, other)],
+        backgroundColor: ['#00e5c0','#4d9fff','#a377ff','#3d5270'],
+        borderColor: '#101e35', borderWidth: 3
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} (${total ? Math.round(ctx.raw/total*100) : 0}%)` } } }
+    }
+  });
+  document.getElementById('role-legend').innerHTML = [
+    { label: 'Patients', val: patients, color: '#00e5c0' },
+    { label: 'Doctors', val: doctors, color: '#4d9fff' },
+    { label: 'Admins', val: admins, color: '#a377ff' },
+    { label: 'Other', val: Math.max(0, other), color: '#3d5270' }
+  ].map(i => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+    <div style="width:10px;height:10px;border-radius:2px;background:${i.color}"></div>
+    <div style="flex:1;color:var(--text-secondary)">${i.label}</div>
+    <div style="font-weight:600;color:var(--text-primary)">${i.val}</div>
+  </div>`).join('');
+}
+
+function renderApptChart() {
+  destroyChart('apptChart');
+  const statuses = ['pending','confirmed','completed','cancelled'];
+  const counts = statuses.map(s => allAppointments.filter(a => (a.status||'pending').toLowerCase() === s).length);
+  charts['apptChart'] = new Chart(document.getElementById('apptChart'), {
+    type: 'bar',
+    data: {
+      labels: statuses.map(s => s.charAt(0).toUpperCase()+s.slice(1)),
+      datasets: [{ label: 'Appointments', data: counts,
+        backgroundColor: ['rgba(255,169,64,0.7)','rgba(0,229,192,0.7)','rgba(77,159,255,0.7)','rgba(255,77,106,0.7)'],
+        borderColor: ['#ffa940','#00e5c0','#4d9fff','#ff4d6a'],
+        borderWidth: 1.5, borderRadius: 6 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#7a90b0', font: { size: 12 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a90b0', font: { size: 11 }, stepSize: 1 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// ANALYTICS PAGE
+// ═══════════════════════════════════════════════════
+function renderAnalytics() {
+  const completed = allAppointments.filter(a => (a.status||'').toLowerCase() === 'completed').length;
+  const pending = allAppointments.filter(a => (a.status||'').toLowerCase() === 'pending').length;
+  const cancelled = allAppointments.filter(a => (a.status||'').toLowerCase() === 'cancelled').length;
+  document.getElementById('an-total').textContent = allUsers.length;
+  document.getElementById('an-completed').textContent = completed;
+  document.getElementById('an-pending').textContent = pending;
+  document.getElementById('an-cancelled').textContent = cancelled;
+
+  // Growth chart
+  destroyChart('growthChart');
+  const months = getLast12Months();
+  const growth = months.map((m, i) => {
+    return allUsers.filter(u => u.created_at && u.created_at.startsWith(m)).length;
+  });
+  // Cumulative
+  let cum = 0;
+  const cumGrowth = growth.map(v => { cum += v; return cum; });
+  charts['growthChart'] = new Chart(document.getElementById('growthChart'), {
+    type: 'line',
+    data: {
+      labels: months.map(m => m.slice(0,7)),
+      datasets: [
+        { label: 'New Users', data: growth, borderColor: '#00e5c0', backgroundColor: 'rgba(0,229,192,0.07)', borderWidth: 2, tension: 0.4, fill: true, yAxisID: 'y' },
+        { label: 'Total Users', data: cumGrowth, borderColor: '#4d9fff', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, borderDash: [4,3], yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#7a90b0', font: { size: 11 } } } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a90b0', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a90b0', font: { size: 11 } }, beginAtZero: true },
+        y1: { position: 'right', grid: { display: false }, ticks: { color: '#4d9fff', font: { size: 11 } }, beginAtZero: true }
+      }
+    }
+  });
+
+  // Breakdown donut
+  destroyChart('apptBreakChart');
+  const statuses = ['Pending','Confirmed','Completed','Cancelled'];
+  const counts = [pending, allAppointments.filter(a=>(a.status||'').toLowerCase()==='confirmed').length, completed, cancelled];
+  charts['apptBreakChart'] = new Chart(document.getElementById('apptBreakChart'), {
+    type: 'doughnut',
+    data: {
+      labels: statuses,
+      datasets: [{ data: counts, backgroundColor: ['rgba(255,169,64,0.8)','rgba(0,229,192,0.8)','rgba(77,159,255,0.8)','rgba(255,77,106,0.8)'], borderColor: '#0c1628', borderWidth: 3 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%', plugins: { legend: { labels: { color: '#7a90b0', font: { size: 12 } } } } }
+  });
+
+  // Monthly bar
+  destroyChart('monthlyChart');
+  const mLabels = months.map(m => m.slice(0,7));
+  const mData = months.map(m => allAppointments.filter(a => a.created_at && a.created_at.startsWith(m)).length);
+  charts['monthlyChart'] = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: mLabels,
+      datasets: [{ label: 'Appointments', data: mData, backgroundColor: 'rgba(77,159,255,0.6)', borderColor: '#4d9fff', borderWidth: 1.5, borderRadius: 5 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#7a90b0', font: { size: 11 }, autoSkip: false, maxRotation: 45 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#7a90b0', font: { size: 11 } }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// SETTINGS DB STATS
+// ═══════════════════════════════════════════════════
+function renderSettingsDbStats() {
+  const el = document.getElementById('settings-db-stats');
+  const rows = [
+    { label: 'Auth Users', value: allUsers.length, icon: 'ti-users' },
+    { label: 'Discovered Tables', value: discoveredTables.length, icon: 'ti-database' },
+    { label: 'Appointments', value: allAppointments.length, icon: 'ti-calendar' },
+    { label: 'Doctors', value: allDoctors.length || allUsers.filter(u => getRole(u) === 'doctor').length, icon: 'ti-stethoscope' },
+  ];
+  el.innerHTML = rows.map(r => `
+    <div class="settings-row">
+      <div class="settings-label"><i class="ti ${r.icon}" style="margin-right:8px;color:var(--accent)"></i>${r.label}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:var(--text-primary)">${r.value.toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+const pageTitles = {
+  overview: 'Dashboard Overview', users: 'All Users', doctors: 'Doctors',
+  patients: 'Patients', appointments: 'Appointments', analytics: 'Analytics',
+  logs: 'Activity Logs', settings: 'Settings'
+};
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const page = document.getElementById(`page-${name}`);
+  if (page) page.classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('topbar-title').textContent = pageTitles[name] || name;
+  currentPage = name;
+  if (name === 'users') renderUsersTable();
+  else if (name === 'doctors') renderDoctorsTable();
+  else if (name === 'patients') renderPatientsTable();
+  else if (name === 'appointments') renderApptsTable();
+}
+
+function refreshCurrentPage() {
+  showToast('Refreshing data…', 'info');
+  loadAllData().then(() => {
+    if (currentPage === 'users') renderUsersTable();
+    else if (currentPage === 'doctors') renderDoctorsTable();
+    else if (currentPage === 'patients') renderPatientsTable();
+    else if (currentPage === 'appointments') renderApptsTable();
+    else if (currentPage === 'analytics') renderAnalytics();
+    showToast('Data refreshed', 'success');
+  });
+}
+
+// ═══════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════
+function exportUsers() {
+  const headers = ['ID','Name','Email','Role','Phone','Created'];
+  const rows = allUsers.map(u => [u.id, getName(u), u.email||'', getRole(u), u.phone||'', u.created_at||'']);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
+  a.download = `mina_users_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('Exported users to CSV', 'success');
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+function showToast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  const icons = { success: 'ti-check', error: 'ti-alert-circle', info: 'ti-info-circle' };
+  el.innerHTML = `<i class="ti ${icons[type]||'ti-info-circle'}" style="font-size:16px;color:var(--${type==='success'?'accent':type==='error'?'danger':'info'})"></i>${msg}`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// ═══════════════════════════════════════════════════
+// DATE UTILS
+// ═══════════════════════════════════════════════════
+function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}); } catch { return d; } }
+function fmtDateTime(d) { if (!d) return '—'; try { return new Date(d).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}); } catch { return d; } }
+
+function getLast30Days() {
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    days.push(d.toISOString().slice(0, 10));
+  }
+  return days;
+}
+
+function getLast12Months() {
+  const months = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - i);
+    months.push(d.toISOString().slice(0, 7));
+  }
+  return months;
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD / GLOBAL SEARCH
+// ═══════════════════════════════════════════════════
+document.getElementById('global-search').addEventListener('input', function() {
+  const q = this.value.trim();
+  if (!q) return;
+  const user = allUsers.find(u => getName(u).toLowerCase().includes(q.toLowerCase()) || (u.email||'').toLowerCase().includes(q.toLowerCase()));
+  if (user) showUserModal(user.id);
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+});
+
+// Allow pressing Enter on login
+document.getElementById('sb-key').addEventListener('keydown', e => { if (e.key === 'Enter') connectSupabase(); });
+</script>
 </body>
 </html>
