@@ -452,6 +452,66 @@ tbody td:first-child { color: var(--text-primary); }
   .charts-grid { grid-template-columns: 1fr; }
   .analytics-grid { grid-template-columns: 1fr; }
 }
+
+/* ── EDIT USER MODAL ── */
+.modal.modal-wide { width: 560px; }
+.modal-tabs { display: flex; gap: 4px; padding: 0 24px; border-bottom: 1px solid var(--border); background: var(--bg-surface); }
+.modal-tab {
+  padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--text-secondary);
+  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s; background: none; border-top: none;
+  border-left: none; border-right: none;
+}
+.modal-tab:hover { color: var(--text-primary); }
+.modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.edit-field { margin-bottom: 16px; }
+.edit-field label {
+  display: block; font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;
+}
+.edit-field input, .edit-field select {
+  width: 100%; padding: 10px 13px; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  color: var(--text-primary); font-size: 13px; font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.15s;
+}
+.edit-field input:focus, .edit-field select:focus { border-color: var(--accent); outline: none; }
+.edit-field input::placeholder { color: var(--text-muted); }
+.edit-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.action-card {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 10px;
+}
+.action-card-info { }
+.action-card-title { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.action-card-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.btn-warn { background: var(--warning-dim); color: var(--warning); border: 1px solid rgba(255,169,64,0.3); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; transition: all 0.15s; }
+.btn-warn:hover { background: rgba(255,169,64,0.2); }
+.btn-danger-soft { background: var(--danger-dim); color: var(--danger); border: 1px solid rgba(255,77,106,0.3); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; transition: all 0.15s; }
+.btn-danger-soft:hover { background: rgba(255,77,106,0.2); }
+.btn-info-soft { background: var(--info-dim); color: var(--info); border: 1px solid rgba(77,159,255,0.3); border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; transition: all 0.15s; }
+.btn-info-soft:hover { background: rgba(77,159,255,0.2); }
+.danger-zone-box {
+  border: 1px solid rgba(255,77,106,0.25); border-radius: var(--radius);
+  padding: 16px; background: var(--danger-dim);
+}
+.danger-zone-box h4 { font-size: 13px; font-weight: 600; color: var(--danger); margin-bottom: 6px; }
+.danger-zone-box p { font-size: 12px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.6; }
+.badge.banned { background: rgba(255,77,106,0.15); color: var(--danger); }
+
+/* ── CONFIRM MODAL ── */
+.confirm-modal { width: 400px; }
+.confirm-icon { width: 52px; height: 52px; border-radius: 14px; background: var(--danger-dim); display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--danger); margin: 0 auto 16px; }
+.confirm-body { text-align: center; padding: 28px 24px 20px; }
+.confirm-body h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+.confirm-body p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.confirm-email { font-family: 'DM Mono', monospace; color: var(--text-primary); font-size: 13px; }
+.btn-danger-full { background: var(--danger); color: #fff; border-radius: 8px; padding: 9px 20px; font-size: 13px; font-weight: 600; transition: all 0.15s; border: none; }
+.btn-danger-full:hover { background: #ff6b84; }
+.btn-danger-full:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -496,10 +556,10 @@ tbody td:first-child { color: var(--text-primary); }
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Management</div>
-      <div class="nav-item" onclick="showPage('users', this)"><i class="ti ti-users"></i>All Users <span class="badge" id="nav-user-count">–</span></div>
-      <div class="nav-item" onclick="showPage('doctors', this)"><i class="ti ti-stethoscope"></i>Doctors <span class="badge" id="nav-doctor-count">–</span></div>
-      <div class="nav-item" onclick="showPage('patients', this)"><i class="ti ti-user-heart"></i>Patients <span class="badge" id="nav-patient-count">–</span></div>
-      <div class="nav-item" onclick="showPage('appointments', this)"><i class="ti ti-calendar-event"></i>Appointments</div>
+      <div class="nav-item" id="nav-users" onclick="showPage('users', this)"><i class="ti ti-users"></i>All Users <span class="badge" id="nav-user-count">–</span></div>
+      <div class="nav-item" id="nav-doctors" onclick="showPage('doctors', this)"><i class="ti ti-stethoscope"></i>Doctors <span class="badge" id="nav-doctor-count">–</span></div>
+      <div class="nav-item" id="nav-patients" onclick="showPage('patients', this)"><i class="ti ti-user-heart"></i>Patients <span class="badge" id="nav-patient-count">–</span></div>
+      <div class="nav-item" id="nav-appointments" onclick="showPage('appointments', this)"><i class="ti ti-calendar-event"></i>Appointments</div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">System</div>
@@ -591,7 +651,7 @@ tbody td:first-child { color: var(--text-primary); }
         <div class="table-card">
           <div class="table-header">
             <div class="table-header-title">Recent Users</div>
-            <button class="btn-sm btn-ghost" onclick="showPage('users', document.querySelector('[onclick*=\"users\"]'))"><i class="ti ti-arrow-right"></i> View all</button>
+            <button class="btn-sm btn-ghost" onclick="showPage('users', document.getElementById('nav-users'))"><i class="ti ti-arrow-right"></i> View all</button>
           </div>
           <table><thead><tr>
             <th>User</th><th>Role</th><th>Status</th><th>Joined</th>
@@ -612,6 +672,7 @@ tbody td:first-child { color: var(--text-primary); }
               <option value="patient">Patient</option>
               <option value="admin">Admin</option>
             </select>
+            <button class="btn-sm btn-accent" onclick="openCreateUserModal()"><i class="ti ti-user-plus"></i> Create User</button>
             <button class="btn-sm btn-ghost" onclick="exportUsers()"><i class="ti ti-download"></i> Export</button>
           </div>
           <table><thead><tr>
@@ -784,18 +845,220 @@ tbody td:first-child { color: var(--text-primary); }
   </div><!-- /main -->
 </div><!-- /app -->
 
-<!-- ── USER DETAIL MODAL ── -->
+<!-- ── USER EDIT MODAL ── -->
 <div class="modal-overlay" id="user-modal">
-  <div class="modal">
+  <div class="modal modal-wide">
     <div class="modal-header">
-      <div class="modal-title">User Details</div>
+      <div id="user-modal-title" class="modal-title" style="display:flex;align-items:center;gap:12px">
+        <div id="user-modal-avatar" style="width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0"></div>
+        <div>
+          <div id="user-modal-name" style="font-size:15px;font-weight:600"></div>
+          <div id="user-modal-email" style="font-size:12px;color:var(--text-secondary);font-weight:400"></div>
+        </div>
+      </div>
       <button class="modal-close" onclick="closeModal('user-modal')"><i class="ti ti-x"></i></button>
     </div>
-    <div class="modal-body" id="user-modal-body">
+    <!-- Tabs -->
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('tab-info', this)"><i class="ti ti-user-edit" style="margin-right:6px"></i>Edit Info</button>
+      <button class="modal-tab" onclick="switchTab('tab-security', this)"><i class="ti ti-shield" style="margin-right:6px"></i>Security</button>
+      <button class="modal-tab" onclick="switchTab('tab-danger', this)" style="color:var(--danger);opacity:0.7"><i class="ti ti-alert-triangle" style="margin-right:6px"></i>Danger Zone</button>
     </div>
-    <div class="modal-footer">
-      <button class="btn-sm btn-ghost" onclick="closeModal('user-modal')">Close</button>
-      <button class="btn-sm btn-accent" id="save-role-btn"><i class="ti ti-check"></i> Save Changes</button>
+    <!-- Tab: Edit Info -->
+    <div class="tab-panel active" id="tab-info">
+      <div class="modal-body">
+        <div class="edit-row">
+          <div class="edit-field">
+            <label>Full Name</label>
+            <input type="text" id="edit-fullname" placeholder="Full name">
+          </div>
+          <div class="edit-field">
+            <label>Phone</label>
+            <input type="tel" id="edit-phone" placeholder="+977-98XXXXXXXX">
+          </div>
+        </div>
+        <div class="edit-field">
+          <label>Email Address</label>
+          <input type="email" id="edit-email" placeholder="user@example.com">
+        </div>
+        <div class="edit-field">
+          <label>Role</label>
+          <select id="edit-role" class="role-select" style="width:100%;padding:10px 13px;font-size:13px">
+            <option value="patient">🩺 Patient</option>
+            <option value="doctor">👨‍⚕️ Doctor</option>
+            <option value="admin">🔑 Admin</option>
+          </select>
+        </div>
+        <div style="padding:12px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);margin-top:4px">
+          <div style="display:flex;gap:16px;font-size:12px;color:var(--text-muted)">
+            <span><i class="ti ti-id" style="margin-right:4px"></i><span id="edit-uid-display" style="font-family:'DM Mono',monospace"></span></span>
+            <span><i class="ti ti-calendar" style="margin-right:4px"></i>Joined <span id="edit-joined-display"></span></span>
+            <span><i class="ti ti-login" style="margin-right:4px"></i>Last seen <span id="edit-lastseen-display"></span></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-ghost" onclick="closeModal('user-modal')">Cancel</button>
+        <button class="btn-sm btn-accent" id="save-info-btn" onclick="saveUserInfo()"><i class="ti ti-check"></i> Save Changes</button>
+      </div>
+    </div>
+    <!-- Tab: Security -->
+    <div class="tab-panel" id="tab-security">
+      <div class="modal-body">
+        <div class="action-card">
+          <div class="action-card-info">
+            <div class="action-card-title">Account Status</div>
+            <div class="action-card-desc" id="ban-status-desc">Loading…</div>
+          </div>
+          <button id="ban-toggle-btn" class="btn-warn" onclick="toggleBanUser()">…</button>
+        </div>
+        <div class="action-card">
+          <div class="action-card-info">
+            <div class="action-card-title">Reset Password</div>
+            <div class="action-card-desc">Send a password reset email to this user</div>
+          </div>
+          <button class="btn-info-soft" onclick="sendPasswordReset()"><i class="ti ti-mail-forward" style="margin-right:5px"></i>Send Reset</button>
+        </div>
+        <div class="action-card" style="margin-bottom:0">
+          <div class="action-card-info">
+            <div class="action-card-title">Force Sign Out</div>
+            <div class="action-card-desc">Invalidate all active sessions for this user</div>
+          </div>
+          <button class="btn-warn" onclick="forceSignOut()"><i class="ti ti-logout" style="margin-right:5px"></i>Sign Out</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-ghost" onclick="closeModal('user-modal')">Close</button>
+      </div>
+    </div>
+    <!-- Tab: Danger Zone -->
+    <div class="tab-panel" id="tab-danger">
+      <div class="modal-body">
+        <div class="danger-zone-box">
+          <h4><i class="ti ti-trash" style="margin-right:6px"></i>Delete User Account</h4>
+          <p>This will permanently delete this user from Supabase Auth and remove their profile row from the database. This action <strong style="color:var(--danger)">cannot be undone</strong>. All associated data may become orphaned.</p>
+          <button class="btn-danger-full" id="open-delete-btn" onclick="openDeleteConfirm()">
+            <i class="ti ti-trash" style="margin-right:6px"></i>Delete This User
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-ghost" onclick="closeModal('user-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM MODAL ── -->
+<div class="modal-overlay" id="delete-confirm-modal">
+  <div class="modal confirm-modal">
+    <div class="confirm-body">
+      <div class="confirm-icon"><i class="ti ti-trash"></i></div>
+      <h3>Delete User?</h3>
+      <p>You are about to permanently delete<br><span class="confirm-email" id="delete-confirm-name"></span><br>This cannot be undone.</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:12px">
+      <button class="btn-sm btn-ghost" onclick="closeModal('delete-confirm-modal')" style="min-width:100px">Cancel</button>
+      <button class="btn-danger-full" id="confirm-delete-btn" onclick="confirmDeleteUser()" style="min-width:130px">
+        <i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CREATE USER MODAL ── -->
+<div class="modal-overlay" id="create-user-modal">
+  <div class="modal" style="width:520px">
+    <div class="modal-header">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;background:var(--accent-dim);border-radius:8px;display:flex;align-items:center;justify-content:center">
+          <i class="ti ti-user-plus" style="color:var(--accent);font-size:16px"></i>
+        </div>
+        Create New User
+      </div>
+      <button class="modal-close" onclick="closeModal('create-user-modal')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="modal-body">
+      <!-- Name row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">First Name</label>
+          <input type="text" id="cu-first-name" placeholder="Mina"
+            style="width:100%;padding:10px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">Last Name</label>
+          <input type="text" id="cu-last-name" placeholder="Gurung"
+            style="width:100%;padding:10px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+      </div>
+      <!-- Email -->
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">Email Address <span style="color:var(--danger)">*</span></label>
+        <input type="email" id="cu-email" placeholder="mina@example.com"
+          style="width:100%;padding:10px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;font-family:'DM Mono',monospace;transition:border-color .15s"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <!-- Password -->
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">Password <span style="color:var(--danger)">*</span></label>
+        <div style="position:relative">
+          <input type="password" id="cu-password" placeholder="Min. 8 characters"
+            style="width:100%;padding:10px 40px 10px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;font-family:'DM Mono',monospace;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <button onclick="toggleCuPassword()" title="Toggle visibility"
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:2px">
+            <i class="ti ti-eye" id="cu-pw-eye"></i>
+          </button>
+        </div>
+        <div id="cu-pw-strength" style="margin-top:6px;height:3px;border-radius:2px;background:var(--border);overflow:hidden">
+          <div id="cu-pw-bar" style="height:100%;width:0;transition:width .3s,background .3s;border-radius:2px"></div>
+        </div>
+      </div>
+      <!-- Phone + Role row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">Phone</label>
+          <input type="tel" id="cu-phone" placeholder="977-98XXXXXXXX"
+            style="width:100%;padding:10px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:6px">Role <span style="color:var(--danger)">*</span></label>
+          <select id="cu-role"
+            style="width:100%;padding:10px 13px;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;cursor:pointer;appearance:none;transition:border-color .15s"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <option value="patient">🩺 Patient</option>
+            <option value="doctor">👨‍⚕️ Doctor</option>
+            <option value="admin">🔑 Admin</option>
+          </select>
+        </div>
+      </div>
+      <!-- Auto-confirm toggle -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:500">Auto-confirm email</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Skip email verification — mark account as confirmed immediately</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="cu-confirm" checked>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+      <!-- Error banner -->
+      <div id="cu-error" style="display:none;margin-top:14px;padding:11px 14px;background:var(--danger-dim);border:1px solid rgba(255,77,106,0.25);border-radius:var(--radius);color:var(--danger);font-size:13px;display:none;align-items:center;gap:8px">
+        <i class="ti ti-alert-circle" style="font-size:16px;flex-shrink:0"></i>
+        <span id="cu-error-msg"></span>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between">
+      <button class="btn-sm btn-ghost" onclick="closeModal('create-user-modal')">Cancel</button>
+      <button class="btn-sm btn-accent" id="cu-submit-btn" onclick="createUser()">
+        <i class="ti ti-user-plus"></i> Create User
+      </button>
     </div>
   </div>
 </div>
@@ -845,7 +1108,18 @@ async function sbGet(table, params = '') {
 
 async function sbPatch(table, match, data) {
   const res = await sbFetch(`/rest/v1/${table}?${match}`, {
-    method: 'PATCH', body: JSON.stringify(data)
+    method: 'PATCH',
+    headers: { 'Prefer': 'return=minimal' },
+    body: JSON.stringify(data)
+  });
+  return res.ok;
+}
+
+async function sbUpsert(table, data) {
+  const res = await sbFetch(`/rest/v1/${table}`, {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(data)
   });
   return res.ok;
 }
@@ -864,6 +1138,80 @@ async function tableExists(name) {
   } catch (_) {
     return false;
   }
+}
+
+// Extract the bad column name from a PostgREST 400 error body
+// Hash a password with SHA-256 using the built-in Web Crypto API
+async function hashPassword(plain) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(plain));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function parseBadColumn(errObj) {
+  const msg = errObj.message || errObj.details || errObj.hint || '';
+  const m1 = msg.match(/Could not find the '(\w+)' column/);
+  if (m1) return m1[1];
+  const m2 = msg.match(/column "?(\w+)"? does not exist/);
+  if (m2) return m2[1];
+  const m3 = msg.match(/column (\w+) of relation/);
+  if (m3) return m3[1];
+  return null;
+}
+
+// GET with automatic fallback: strips order= clause if it causes a 400
+async function sbGetSafe(table, params = '') {
+  let res = await sbFetch(`/rest/v1/${table}?${params}`);
+  if (res.ok) return res.json();
+  if (res.status === 400) {
+    const safeParams = params.replace(/&?order=[^&]*/g, '').replace(/^&/, '');
+    res = await sbFetch(`/rest/v1/${table}?${safeParams}`);
+    if (res.ok) return res.json();
+  }
+  return null;
+}
+
+// POST/upsert that progressively strips columns the table doesn't have
+async function sbUpsertSafe(table, payload) {
+  let current = { ...payload };
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const res = await sbFetch(`/rest/v1/${table}`, {
+      method: 'POST',
+      headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify(current)
+    });
+    if (res.ok) return { ok: true };
+    if (res.status !== 400 && res.status !== 422) return { ok: false, status: res.status };
+    const err = await res.json().catch(() => ({}));
+    const bad = parseBadColumn(err);
+    if (bad && current[bad] !== undefined) {
+      delete current[bad];
+    } else {
+      return { ok: false, error: err.message || JSON.stringify(err) };
+    }
+  }
+  return { ok: false, error: 'Could not find a valid set of columns to insert' };
+}
+
+// PATCH that progressively strips columns the table doesn't have
+async function sbPatchSafe(table, match, payload) {
+  let current = { ...payload };
+  for (let attempt = 0; attempt < 15; attempt++) {
+    const res = await sbFetch(`/rest/v1/${table}?${match}`, {
+      method: 'PATCH',
+      headers: { 'Prefer': 'return=minimal' },
+      body: JSON.stringify(current)
+    });
+    if (res.ok) return true;
+    if (res.status !== 400 && res.status !== 422) return false;
+    const err = await res.json().catch(() => ({}));
+    const bad = parseBadColumn(err);
+    if (bad && current[bad] !== undefined) {
+      delete current[bad];
+    } else {
+      return false;
+    }
+  }
+  return false;
 }
 
 // ═══════════════════════════════════════════════════
@@ -986,7 +1334,7 @@ async function loadUsers() {
   const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
   let profileRows = [];
   if (profileTable) {
-    const data = await sbGet(profileTable, 'limit=2000&order=created_at.desc');
+    const data = await sbGetSafe(profileTable, 'limit=2000&order=created_at.desc');
     profileRows = data || [];
   }
 
@@ -994,21 +1342,21 @@ async function loadUsers() {
   const authUsers = await getAuthUsers();
 
   if (authUsers && authUsers.length > 0) {
-    // Build map from profile rows keyed by id OR user_id
+    // Build profile map keyed by email (handles int PK tables that don't store auth UUID)
     const profileMap = {};
     profileRows.forEach(p => {
-      const key = p.id || p.user_id;
+      const key = (p.email || '').toLowerCase();
       if (key) profileMap[key] = p;
     });
     // Merge: auth user as base, spread profile on top so role/name from profile wins
     allUsers = authUsers.map(u => {
-      const prof = profileMap[u.id] || {};
+      const prof = profileMap[(u.email || '').toLowerCase()] || {};
       return { ...u, ...prof, email: u.email || prof.email, id: u.id };
     });
-    // Include profile rows that have no matching auth user (edge case)
+    // Include profile rows with no matching auth user (edge case)
     profileRows.forEach(p => {
-      const key = p.id || p.user_id;
-      if (key && !allUsers.find(u => u.id === key)) {
+      const key = (p.email || '').toLowerCase();
+      if (key && !allUsers.find(u => (u.email || '').toLowerCase() === key)) {
         allUsers.push(p);
       }
     });
@@ -1023,7 +1371,7 @@ async function loadUsers() {
 async function loadDoctors() {
   const table = discoveredTables.find(t => ['doctors','doctor_profiles','doctor_details'].includes(t));
   if (table) {
-    const data = await sbGet(table, 'limit=1000&order=created_at.desc');
+    const data = await sbGetSafe(table, 'limit=1000&order=created_at.desc');
     allDoctors = data || [];
   } else {
     allDoctors = allUsers.filter(u => getRole(u) === 'doctor');
@@ -1034,7 +1382,7 @@ async function loadDoctors() {
 async function loadPatients() {
   const table = discoveredTables.find(t => ['patients','patient_profiles','patient_details'].includes(t));
   if (table) {
-    const data = await sbGet(table, 'limit=1000&order=created_at.desc');
+    const data = await sbGetSafe(table, 'limit=1000&order=created_at.desc');
     allPatients = data || [];
   } else {
     allPatients = allUsers.filter(u => getRole(u) === 'patient');
@@ -1104,14 +1452,24 @@ function getRole(u) {
   return String(r).toLowerCase();
 }
 
-// Returns the DB-format role value (uppercase if that's what the DB uses)
+// Returns the DB-format role value — detects whether DB uses UPPERCASE or lowercase
 function toDbRole(role) {
-  const sample = allUsers.find(u => u.role);
-  if (sample && sample.role === String(sample.role).toUpperCase()) return role.toUpperCase();
-  return role;
+  // Check profile rows (merged into allUsers) for a .role field to detect casing
+  const sample = allUsers.find(u => u.role && typeof u.role === 'string' && !u.user_metadata);
+  if (sample && sample.role === sample.role.toUpperCase() && sample.role.length > 0) {
+    return role.toUpperCase();
+  }
+  // Also check raw app_metadata or user_metadata
+  const metaSample = allUsers.find(u => {
+    const r = (u.app_metadata && u.app_metadata.role) || (u.user_metadata && u.user_metadata.role);
+    return r && r === r.toUpperCase();
+  });
+  if (metaSample) return role.toUpperCase();
+  return role.toLowerCase();
 }
 
 function getName(u) {
+  if (!u) return 'Unknown';
   return u.full_name || u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() ||
     (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) ||
     (u.raw_user_meta_data && u.raw_user_meta_data.full_name) ||
@@ -1194,6 +1552,10 @@ function renderUserRow(u) {
   const role = getRole(u); // always lowercase
   const phone = u.phone || u.phone_number || (u.user_metadata && u.user_metadata.phone) || '—';
   const active = !!(u.email_confirmed_at || u.confirmed_at || u.phone_confirmed_at);
+  const isBanned = !!(u.banned_until && new Date(u.banned_until) > new Date());
+  const statusBadge = isBanned
+    ? `<span class="badge banned"><i class="ti ti-ban" style="font-size:10px"></i> Banned</span>`
+    : `<span class="badge ${active?'active':'inactive'}">${active?'Active':'Unconfirmed'}</span>`;
   return `<tr>
     <td><div class="user-cell">
       <div class="user-avatar" style="background:${bg};color:${fg}">${getInitials(u)}</div>
@@ -1207,10 +1569,11 @@ function renderUserRow(u) {
       </select>
     </td>
     <td>${phone}</td>
-    <td><span class="badge ${active?'active':'inactive'}">${active?'Active':'Unconfirmed'}</span></td>
+    <td>${statusBadge}</td>
     <td>${fmtDate(u.created_at)}</td>
     <td style="white-space:nowrap">
-      <button class="action-btn" onclick="showUserModal('${u.id}')" title="View details"><i class="ti ti-eye"></i></button>
+      <button class="action-btn" onclick="showUserModal('${u.id}')" title="Edit user"><i class="ti ti-edit"></i></button>
+      <button class="action-btn danger" onclick="quickDeleteUser('${u.id}','${getName(u).replace(/'/g,"\\'")}','${u.email||''}')" title="Delete user" style="margin-left:4px"><i class="ti ti-trash"></i></button>
     </td>
   </tr>`;
 }
@@ -1360,37 +1723,45 @@ function changePage(key, p) {
 async function handleRoleChange(sel) {
   const uid = sel.dataset.uid;
   const newRole = sel.value; // lowercase from option value
-  const dbRole = toDbRole(newRole); // match DB casing (UPPERCASE)
+  const dbRole = toDbRole(newRole);
   sel.disabled = true;
   try {
-    let ok = false;
-    // 1. Update the profile/users table — try id= then user_id= match
+    let profileOk = false;
+    let authOk = false;
+
+    // 1. Update the profile/users table — match by email (table uses int PK, not auth UUID)
     const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
-    if (profileTable) {
-      ok = await sbPatch(profileTable, `id=eq.${uid}`, { role: dbRole });
-      if (!ok) ok = await sbPatch(profileTable, `user_id=eq.${uid}`, { role: dbRole });
+    const roleUser = allUsers.find(u => u.id === uid);
+    const roleEmail = roleUser && roleUser.email;
+    if (profileTable && roleEmail) {
+      profileOk = await sbPatchSafe(profileTable, `email=eq.${encodeURIComponent(roleEmail)}`, { role: dbRole });
     }
-    // 2. Also update auth user metadata as secondary store
+
+    // 2. Update auth user metadata AND app_metadata (primary/secure role store)
     try {
-      await sbFetch(`/auth/v1/admin/users/${uid}`, {
+      const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, {
         method: 'PUT',
-        body: JSON.stringify({ user_metadata: { role: dbRole } })
+        body: JSON.stringify({
+          user_metadata: { role: dbRole },
+          app_metadata: { role: dbRole }
+        })
       });
+      authOk = authRes.ok;
     } catch(_) {}
 
-    if (ok) {
-      // Update local state
+    // Success if EITHER the profile table OR auth metadata was updated
+    if (authOk || profileOk) {
       const user = allUsers.find(u => u.id === uid);
       if (user) {
         user.role = dbRole;
         user.user_role = dbRole;
         if (user.user_metadata) user.user_metadata.role = dbRole;
         if (user.raw_user_meta_data) user.raw_user_meta_data.role = dbRole;
+        if (user.app_metadata) user.app_metadata.role = dbRole;
       }
       updateNavBadges();
       showToast(`Role updated to ${newRole}`, 'success');
     } else {
-      // Revert dropdown
       sel.value = getRole(allUsers.find(u => u.id === uid) || {});
       showToast('Failed to update role — check table permissions', 'error');
     }
@@ -1402,84 +1773,285 @@ async function handleRoleChange(sel) {
 }
 
 // ═══════════════════════════════════════════════════
-// USER MODAL
+// USER MODAL — tabbed edit/security/danger
 // ═══════════════════════════════════════════════════
+let _editingUserId = null;
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('#user-modal .tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('#user-modal .modal-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
 function showUserModal(uid, type) {
   const user = allUsers.find(u => u.id === uid) || allDoctors.find(u => u.id === uid) || allPatients.find(u => u.id === uid);
   if (!user) return;
+  _editingUserId = uid;
+
   const [bg, fg] = avatarColor(user.id);
   const role = getRole(user);
   const meta = user.user_metadata || user.raw_user_meta_data || {};
-  document.getElementById('user-modal-body').innerHTML = `
-    <div class="modal-user-header">
-      <div class="modal-avatar" style="background:${bg};color:${fg}">${getInitials(user)}</div>
-      <div class="modal-user-meta">
-        <h3>${getName(user)}</h3>
-        <p>${user.email || '—'}</p>
-        <div style="margin-top:8px;display:flex;gap:8px;">
-          <span class="badge ${role}">${role}</span>
-          <span class="badge ${user.email_confirmed_at?'active':'inactive'}">${user.email_confirmed_at?'Verified':'Unverified'}</span>
-        </div>
-      </div>
-    </div>
-    <div class="detail-grid">
-      <div class="detail-item"><label>User ID</label><p style="font-size:11px">${user.id || '—'}</p></div>
-      <div class="detail-item"><label>Phone</label><p>${user.phone || meta.phone || '—'}</p></div>
-      <div class="detail-item"><label>Registered</label><p>${fmtDateTime(user.created_at)}</p></div>
-      <div class="detail-item"><label>Last Sign In</label><p>${fmtDateTime(user.last_sign_in_at)}</p></div>
-      ${meta.specialization ? `<div class="detail-item"><label>Specialization</label><p>${meta.specialization}</p></div>` : ''}
-      ${user.license_number ? `<div class="detail-item"><label>License No</label><p>${user.license_number}</p></div>` : ''}
-      ${user.date_of_birth ? `<div class="detail-item"><label>Date of Birth</label><p>${fmtDate(user.date_of_birth)}</p></div>` : ''}
-      ${user.blood_type ? `<div class="detail-item"><label>Blood Type</label><p>${user.blood_type}</p></div>` : ''}
-      <div class="detail-item full">
-        <label>Change Role</label>
-        <select class="role-select" id="modal-role" style="width:100%;padding:9px 12px;font-size:14px">
-          <option value="patient" ${role==='patient'?'selected':''}>Patient</option>
-          <option value="doctor" ${role==='doctor'?'selected':''}>Doctor</option>
-          <option value="admin" ${role==='admin'?'selected':''}>Admin</option>
-        </select>
-      </div>
-    </div>
-  `;
-  document.getElementById('save-role-btn').onclick = async () => {
-    const newRole = document.getElementById('modal-role').value; // lowercase
-    const dbRole = toDbRole(newRole);
-    const saveBtn = document.getElementById('save-role-btn');
-    saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
-    try {
-      let ok = false;
-      const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
-      if (profileTable) {
-        ok = await sbPatch(profileTable, `id=eq.${user.id}`, { role: dbRole });
-        if (!ok) ok = await sbPatch(profileTable, `user_id=eq.${user.id}`, { role: dbRole });
-      }
-      // Also update auth metadata
-      try {
-        await sbFetch(`/auth/v1/admin/users/${user.id}`, {
-          method: 'PUT', body: JSON.stringify({ user_metadata: { role: dbRole } })
-        });
-      } catch(_) {}
-      if (ok) {
-        const u = allUsers.find(x => x.id === user.id);
-        if (u) {
-          u.role = dbRole; u.user_role = dbRole;
-          if (u.user_metadata) u.user_metadata.role = dbRole;
-          if (u.raw_user_meta_data) u.raw_user_meta_data.role = dbRole;
-        }
-        updateNavBadges();
-        if (currentPage === 'users') renderUsersTable();
-        showToast(`Role updated to ${newRole}`, 'success');
-        closeModal('user-modal');
-      } else {
-        showToast('Failed to update role — check table permissions', 'error');
-      }
-    } catch(e) {
-      showToast('Error: ' + e.message, 'error');
-    } finally {
-      saveBtn.disabled = false; saveBtn.textContent = 'Save Changes';
-    }
-  };
+  const phone = user.phone || user.phone_number || meta.phone || '';
+  const isBanned = !!(user.banned_until && new Date(user.banned_until) > new Date());
+
+  // Populate header
+  const av = document.getElementById('user-modal-avatar');
+  av.style.background = bg; av.style.color = fg;
+  av.textContent = getInitials(user);
+  document.getElementById('user-modal-name').textContent = getName(user);
+  document.getElementById('user-modal-email').textContent = user.email || '—';
+
+  // Edit Info tab
+  document.getElementById('edit-fullname').value = getName(user) !== (user.email||'').split('@')[0] ? getName(user) : '';
+  document.getElementById('edit-email').value = user.email || '';
+  document.getElementById('edit-phone').value = phone;
+  document.getElementById('edit-role').value = role;
+  document.getElementById('edit-uid-display').textContent = uid.substring(0, 18) + '…';
+  document.getElementById('edit-joined-display').textContent = fmtDate(user.created_at);
+  document.getElementById('edit-lastseen-display').textContent = user.last_sign_in_at ? fmtDate(user.last_sign_in_at) : 'Never';
+
+  // Security tab — ban status
+  const banDesc = document.getElementById('ban-status-desc');
+  const banBtn  = document.getElementById('ban-toggle-btn');
+  if (isBanned) {
+    banDesc.textContent = 'This account is currently banned';
+    banBtn.textContent  = '✓ Unban User';
+    banBtn.className    = 'btn-info-soft';
+  } else {
+    banDesc.textContent = 'This account is active and can sign in';
+    banBtn.textContent  = 'Ban User';
+    banBtn.className    = 'btn-warn';
+  }
+
+  // Reset to Info tab
+  switchTab('tab-info', document.querySelector('#user-modal .modal-tab'));
+
   document.getElementById('user-modal').classList.add('open');
+}
+
+// Save Info + Role
+async function saveUserInfo() {
+  const uid      = _editingUserId;
+  const user     = allUsers.find(u => u.id === uid);
+  if (!uid || !user) return;
+
+  const newName  = document.getElementById('edit-fullname').value.trim();
+  const newEmail = document.getElementById('edit-email').value.trim();
+  const newPhone = document.getElementById('edit-phone').value.trim();
+  const newRole  = document.getElementById('edit-role').value;
+  const dbRole   = toDbRole(newRole);
+
+  if (!newEmail) { showToast('Email is required', 'error'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { showToast('Invalid email address', 'error'); return; }
+
+  const btn = document.getElementById('save-info-btn');
+  btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px"></div> Saving…';
+
+  try {
+    let authOk = false, profileOk = false;
+
+    // 1. Update auth user (email + metadata)
+    try {
+      const authPayload = {
+        email: newEmail,
+        user_metadata: { full_name: newName || undefined, role: dbRole, phone: newPhone || undefined },
+        app_metadata: { role: dbRole }
+      };
+      if (!newName) delete authPayload.user_metadata.full_name;
+      if (!newPhone) delete authPayload.user_metadata.phone;
+      const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, {
+        method: 'PUT', body: JSON.stringify(authPayload)
+      });
+      authOk = authRes.ok;
+      if (authOk) {
+        const updated = await authRes.json().catch(() => ({}));
+        // Merge auth response back into allUsers
+        const idx = allUsers.findIndex(u => u.id === uid);
+        if (idx !== -1) allUsers[idx] = { ...allUsers[idx], ...updated, id: uid };
+      }
+    } catch(_) {}
+
+    // 2. Update profile table using column-aware safe patch
+    const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
+    if (profileTable) {
+      // Include all possible column name variants; sbPatchSafe strips unknown ones automatically
+      const profilePatch = {
+        role: dbRole,
+        ...(newName  ? { full_name: newName, name: newName }       : {}),
+        ...(newEmail ? { email: newEmail }                          : {}),
+        ...(newPhone ? { phone: newPhone, phone_number: newPhone }  : {})
+      };
+
+      // Match by email (int PK tables don't store auth UUID)
+      profileOk = await sbPatchSafe(profileTable, `email=eq.${encodeURIComponent(user.email || newEmail)}`, profilePatch);
+      // If no row matched, insert a new one
+      if (!profileOk) {
+        const upsertResult = await sbUpsertSafe(profileTable, { email: newEmail, role: dbRole, full_name: newName || undefined, name: newName || undefined });
+        profileOk = upsertResult.ok;
+      }
+    }
+
+    if (authOk || profileOk) {
+      // Update local state
+      const u = allUsers.find(x => x.id === uid);
+      if (u) {
+        if (newName)  u.full_name = newName;
+        if (newEmail) u.email     = newEmail;
+        if (newPhone) { u.phone   = newPhone; if (u.user_metadata) u.user_metadata.phone = newPhone; }
+        u.role = dbRole; u.user_role = dbRole;
+        if (u.user_metadata) { u.user_metadata.role = dbRole; if (newName) u.user_metadata.full_name = newName; }
+        if (u.raw_user_meta_data) u.raw_user_meta_data.role = dbRole;
+        if (u.app_metadata) u.app_metadata.role = dbRole;
+      }
+      updateNavBadges();
+      if (currentPage === 'users') renderUsersTable();
+      showToast(`User "${newName || newEmail}" updated`, 'success');
+      closeModal('user-modal');
+    } else {
+      showToast('Failed to save — check permissions', 'error');
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Save Changes';
+  }
+}
+
+// Ban / Unban
+async function toggleBanUser() {
+  const uid  = _editingUserId;
+  const user = allUsers.find(u => u.id === uid);
+  if (!user) return;
+  const isBanned = !!(user.banned_until && new Date(user.banned_until) > new Date());
+  const btn = document.getElementById('ban-toggle-btn');
+  btn.disabled = true;
+  try {
+    const payload = isBanned
+      ? { ban_duration: 'none' }
+      : { ban_duration: '876600h' }; // ~100 years
+    const res = await sbFetch(`/auth/v1/admin/users/${uid}`, {
+      method: 'PUT', body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      user.banned_until = isBanned ? null : new Date(Date.now() + 876600*3600000).toISOString();
+      const nowBanned = !isBanned;
+      document.getElementById('ban-status-desc').textContent = nowBanned ? 'This account is currently banned' : 'This account is active and can sign in';
+      btn.textContent = nowBanned ? '✓ Unban User' : 'Ban User';
+      btn.className   = nowBanned ? 'btn-info-soft' : 'btn-warn';
+      if (currentPage === 'users') renderUsersTable();
+      showToast(nowBanned ? 'User banned' : 'User unbanned', nowBanned ? 'error' : 'success');
+    } else {
+      showToast('Failed to update ban status', 'error');
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Send password reset email
+async function sendPasswordReset() {
+  const uid  = _editingUserId;
+  const user = allUsers.find(u => u.id === uid);
+  if (!user || !user.email) { showToast('No email on file for this user', 'error'); return; }
+  try {
+    const res = await sbFetch(`/auth/v1/admin/generate_link`, {
+      method: 'POST',
+      body: JSON.stringify({ type: 'recovery', email: user.email })
+    });
+    if (res.ok) {
+      showToast(`Password reset link generated for ${user.email}`, 'success');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showToast(err.message || 'Failed to generate reset link', 'error');
+    }
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// Force sign out (invalidate all sessions)
+async function forceSignOut() {
+  const uid = _editingUserId;
+  if (!uid) return;
+  try {
+    const res = await sbFetch(`/auth/v1/admin/users/${uid}/logout`, { method: 'POST' });
+    showToast(res.ok ? 'All sessions invalidated' : 'Failed to sign out user', res.ok ? 'success' : 'error');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+
+// Open delete confirm from modal
+function openDeleteConfirm() {
+  const user = allUsers.find(u => u.id === _editingUserId);
+  if (!user) return;
+  document.getElementById('delete-confirm-name').textContent = `${getName(user)} (${user.email || 'no email'})`;
+  document.getElementById('confirm-delete-btn').disabled = false;
+  document.getElementById('confirm-delete-btn').innerHTML = '<i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete';
+  document.getElementById('delete-confirm-modal').classList.add('open');
+}
+
+// Quick delete from table row (no need to open edit modal first)
+function quickDeleteUser(uid, name, email) {
+  _editingUserId = uid;
+  document.getElementById('delete-confirm-name').textContent = `${name} (${email || 'no email'})`;
+  document.getElementById('confirm-delete-btn').disabled = false;
+  document.getElementById('confirm-delete-btn').innerHTML = '<i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete';
+  document.getElementById('delete-confirm-modal').classList.add('open');
+}
+
+// Actually delete the user
+async function confirmDeleteUser() {
+  const uid  = _editingUserId;
+  // Search across all local arrays so the name is always available
+  const user = allUsers.find(u => u.id === uid)
+             || allDoctors.find(u => u.id === uid)
+             || allPatients.find(u => u.id === uid);
+  if (!uid) return;
+  const btn = document.getElementById('confirm-delete-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff;display:inline-block;margin-right:6px"></div>Deleting…';
+  try {
+    // 1. Delete from Supabase Auth
+    const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, { method: 'DELETE' });
+    if (!authRes.ok && authRes.status !== 404) {
+      const err = await authRes.json().catch(() => ({}));
+      showToast(err.message || 'Failed to delete from Auth', 'error');
+      btn.disabled = false; btn.innerHTML = '<i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete';
+      return;
+    }
+
+    // 2. Delete from profile table by email (best-effort; table uses int PK not auth UUID)
+    const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
+    if (profileTable && user && user.email) {
+      await sbFetch(
+        `/rest/v1/${profileTable}?email=eq.${encodeURIComponent(user.email)}`,
+        { method: 'DELETE', headers: { 'Prefer': 'return=minimal' } }
+      ).catch(() => {});
+    }
+
+    // 3. Remove from local state
+    allUsers = allUsers.filter(u => u.id !== uid);
+    allDoctors = allDoctors.filter(u => u.id !== uid);
+    allPatients = allPatients.filter(u => u.id !== uid);
+    _editingUserId = null;
+
+    closeModal('delete-confirm-modal');
+    closeModal('user-modal');
+    updateNavBadges();
+    if (currentPage === 'users') renderUsersTable();
+    else if (currentPage === 'doctors') renderDoctorsTable();
+    else if (currentPage === 'patients') renderPatientsTable();
+    renderOverview();
+    renderSettingsDbStats();
+    showToast(`User "${getName(user) || uid}" deleted`, 'success');
+  } catch(e) {
+    showToast('Error: ' + e.message, 'error');
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete';
+  }
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -1797,6 +2369,174 @@ function getLast12Months() {
 // ═══════════════════════════════════════════════════
 // KEYBOARD / GLOBAL SEARCH
 // ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+// CREATE USER
+// ═══════════════════════════════════════════════════
+function openCreateUserModal() {
+  // Reset form
+  ['cu-first-name','cu-last-name','cu-email','cu-password','cu-phone'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('cu-role').value = 'patient';
+  document.getElementById('cu-confirm').checked = true;
+  document.getElementById('cu-pw-bar').style.width = '0';
+  hideCuError();
+  document.getElementById('create-user-modal').classList.add('open');
+  setTimeout(() => document.getElementById('cu-first-name').focus(), 100);
+
+  // Password strength meter
+  document.getElementById('cu-password').oninput = function() {
+    const pw = this.value;
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    const bar = document.getElementById('cu-pw-bar');
+    const pct = [0, 20, 40, 65, 85, 100][score];
+    const col = ['#3d5270', '#ff4d6a', '#ffa940', '#4d9fff', '#00c896', '#00e5c0'][score];
+    bar.style.width = pct + '%';
+    bar.style.background = col;
+  };
+}
+
+function toggleCuPassword() {
+  const inp = document.getElementById('cu-password');
+  const eye = document.getElementById('cu-pw-eye');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    eye.className = 'ti ti-eye-off';
+  } else {
+    inp.type = 'password';
+    eye.className = 'ti ti-eye';
+  }
+}
+
+function showCuError(msg) {
+  const el = document.getElementById('cu-error');
+  document.getElementById('cu-error-msg').textContent = msg;
+  el.style.display = 'flex';
+}
+
+function hideCuError() {
+  document.getElementById('cu-error').style.display = 'none';
+}
+
+async function createUser() {
+  hideCuError();
+  const firstName = document.getElementById('cu-first-name').value.trim();
+  const lastName  = document.getElementById('cu-last-name').value.trim();
+  const email     = document.getElementById('cu-email').value.trim();
+  const password  = document.getElementById('cu-password').value;
+  const phone     = document.getElementById('cu-phone').value.trim();
+  const role      = document.getElementById('cu-role').value;
+  const autoConfirm = document.getElementById('cu-confirm').checked;
+  const fullName  = [firstName, lastName].filter(Boolean).join(' ') || email.split('@')[0];
+
+  // Validation
+  if (!email) { showCuError('Email address is required.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showCuError('Please enter a valid email address.'); return; }
+  if (!password) { showCuError('Password is required.'); return; }
+  if (password.length < 8) { showCuError('Password must be at least 8 characters.'); return; }
+
+  const btn = document.getElementById('cu-submit-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Creating…';
+
+  try {
+    const dbRole = toDbRole(role);
+
+    // 1. Create the auth user via Supabase Admin API
+    const authPayload = {
+      email,
+      password,
+      email_confirm: autoConfirm,
+      user_metadata: { full_name: fullName, role: dbRole, phone: phone || undefined },
+      app_metadata: { role: dbRole }
+    };
+    if (phone) authPayload.phone = phone;
+
+    const authRes = await sbFetch('/auth/v1/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(authPayload)
+    });
+
+    const authData = await authRes.json();
+    if (!authRes.ok) {
+      showCuError(authData.msg || authData.message || authData.error_description || 'Failed to create user in Auth.');
+      return;
+    }
+
+    const newUserId = authData.id;
+
+    // 2. Insert a row into the profile table
+    // NOTE: This table uses an integer auto-increment PK — never send the auth UUID as id.
+    // Match is done by email. sbUpsertSafe auto-strips any columns the table doesn't have.
+    const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
+    if (profileTable) {
+      // Derive a username from email (strip domain + add random suffix for uniqueness)
+      const baseUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '_');
+      const username = baseUsername + '_' + Math.floor(Math.random() * 9000 + 1000);
+
+      const hashedPassword = await hashPassword(password);
+
+      const profilePayload = {
+        email,
+        username,
+        hashed_password: hashedPassword,
+        role: dbRole,
+        full_name: fullName || undefined,
+        name: fullName || undefined,
+        phone: phone || undefined,
+        phone_number: phone || undefined,
+        is_active: true,
+        is_verified: false
+      };
+      Object.keys(profilePayload).forEach(k => profilePayload[k] === undefined && delete profilePayload[k]);
+
+      // Check if a row with this email already exists; if so PATCH, else INSERT
+      const existing = await sbFetch(`/rest/v1/${profileTable}?email=eq.${encodeURIComponent(email)}&limit=1`);
+      const existingRows = existing.ok ? await existing.json().catch(() => []) : [];
+      let result;
+      if (existingRows.length > 0) {
+        const patched = await sbPatchSafe(profileTable, `email=eq.${encodeURIComponent(email)}`, profilePayload);
+        result = { ok: patched };
+      } else {
+        result = await sbUpsertSafe(profileTable, profilePayload);
+      }
+
+      if (!result.ok) {
+        const errMsg = result.error || `HTTP ${result.status}`;
+        console.error('Profile insert failed:', errMsg);
+        showToast(`⚠️ Auth user created but profile row failed: ${errMsg}`, 'error');
+      }
+    }
+
+    // 3. Re-fetch from Supabase to confirm DB state, then update UI
+    closeModal('create-user-modal');
+    showToast(`User "${fullName || email}" created — refreshing…`, 'success');
+    await loadUsers();
+    updateNavBadges();
+    if (currentPage === 'users') renderUsersTable();
+    renderOverview();
+    renderSettingsDbStats();
+    showToast(`User "${fullName || email}" is now live in Supabase ✓`, 'success');
+  } catch(e) {
+    showCuError('Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-user-plus"></i> Create User';
+  }
+}
+
+// Allow Enter key to submit create user form
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('create-user-modal').classList.contains('open')) {
+    createUser();
+  }
+});
+
 document.getElementById('global-search').addEventListener('input', function() {
   const q = this.value.trim();
   if (!q) return;
