@@ -1192,8 +1192,11 @@ async function sbUpsertSafe(table, payload) {
   return { ok: false, error: 'Could not find a valid set of columns to insert' };
 }
 
-// PATCH that progressively strips columns the table doesn't have
+// PATCH that progressively strips columns the table doesn't have.
+// Returns true on success, false on unrecoverable failure.
+// Sets sbPatchSafe.lastError with a human-readable reason on failure.
 async function sbPatchSafe(table, match, payload) {
+  sbPatchSafe.lastError = null;
   let current = { ...payload };
   for (let attempt = 0; attempt < 15; attempt++) {
     const res = await sbFetch(`/rest/v1/${table}?${match}`, {
@@ -1202,16 +1205,49 @@ async function sbPatchSafe(table, match, payload) {
       body: JSON.stringify(current)
     });
     if (res.ok) return true;
-    if (res.status !== 400 && res.status !== 422) return false;
+    if (res.status === 401 || res.status === 403) {
+      sbPatchSafe.lastError = `RLS policy blocked the update (HTTP ${res.status}). Grant UPDATE permission on the "${table}" table or disable RLS for admin operations.`;
+      return false;
+    }
+    if (res.status !== 400 && res.status !== 422) {
+      sbPatchSafe.lastError = `HTTP ${res.status} from ${table}`;
+      return false;
+    }
     const err = await res.json().catch(() => ({}));
     const bad = parseBadColumn(err);
     if (bad && current[bad] !== undefined) {
       delete current[bad];
     } else {
+      sbPatchSafe.lastError = err.message || JSON.stringify(err);
       return false;
     }
   }
+  sbPatchSafe.lastError = 'Could not find a valid set of columns to patch';
   return false;
+}
+
+// ── file:// protocol warning ─────────────────────────
+if (window.location.protocol === 'file:') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const warn = document.createElement('div');
+    warn.style.cssText = [
+      'background:rgba(255,169,64,0.1)',
+      'border:1px solid rgba(255,169,64,0.35)',
+      'border-radius:8px',
+      'padding:10px 14px',
+      'color:#ffa940',
+      'font-size:12px',
+      'line-height:1.5',
+      'margin-bottom:18px'
+    ].join(';');
+    warn.innerHTML = '<strong>⚠ Opened from file://</strong> — browsers treat local files as unique '
+      + 'security origins, which can block some requests. If you see unexpected errors, '
+      + 'serve this file through a local web server instead:<br>'
+      + '<code style="font-size:11px;opacity:0.8">python -m http.server 8080</code> '
+      + 'then open <code style="font-size:11px;opacity:0.8">http://localhost:8080</code>.';
+    const card = document.querySelector('.login-card');
+    if (card) card.insertBefore(warn, card.firstChild);
+  });
 }
 
 // ═══════════════════════════════════════════════════
@@ -1231,25 +1267,14 @@ async function connectSupabase() {
   btn.disabled = true; btn.textContent = 'Connecting…';
   err.style.display = 'none';
   try {
-    // Use auth health endpoint as connection test (no auth required)
-    let connected = false;
-    try {
-      const healthRes = await fetch(SUPABASE_URL + '/auth/v1/health', { method: 'GET' });
-      connected = healthRes.ok;
-    } catch(_) {}
-    // Fallback: try hitting auth users to verify the key itself
-    if (!connected) {
-      try {
-        const testRes = await sbFetch('/auth/v1/admin/users?page=1&per_page=1');
-        connected = testRes.status !== 0; // any HTTP response means server is reachable
-      } catch(_) {}
-    }
-    if (!connected) {
-      showLoginError('Cannot reach Supabase. Check the URL is correct and you have internet access.');
+    // Newer Supabase requires the apikey header even on /health,
+    // so skip the plain-fetch health check entirely and use the
+    // admin users endpoint as a single connectivity + auth test.
+    const authTest = await sbFetch('/auth/v1/admin/users?page=1&per_page=1');
+    if (!authTest.status) {
+      showLoginError('Cannot reach Supabase. Check the URL and your internet connection.');
       return;
     }
-    // Verify key has admin access
-    const authTest = await sbFetch('/auth/v1/admin/users?page=1&per_page=1');
     if (authTest.status === 401 || authTest.status === 403) {
       showLoginError('Key rejected — make sure you\'re using the service_role key, not the anon key.');
       return;
@@ -1292,11 +1317,38 @@ const KNOWN_TABLES = [
 
 async function discoverTables() {
   discoveredTables = [];
-  const checks = KNOWN_TABLES.map(async t => {
-    const exists = await tableExists(t);
-    if (exists) discoveredTables.push(t);
-  });
-  await Promise.allSettled(checks);
+  try {
+    // Single OpenAPI request — no per-table 404 noise.
+    // PostgREST may use swagger 2.x (paths: {"/tablename": ...})
+    // or expose definitions/components.schemas with bare table names.
+    const res = await sbFetch('/rest/v1/');
+    if (res.ok) {
+      const schema = await res.json();
+      const knownSet = new Set(KNOWN_TABLES);
+      const candidates = new Set();
+
+      // swagger 2.x: paths keys are "/tablename"
+      Object.keys(schema.paths || {}).forEach(p => {
+        const name = p.replace(/^\//, '').split('?')[0];
+        if (name && !name.startsWith('rpc/')) candidates.add(name);
+      });
+      // swagger 2.x definitions / OAS 3.x components.schemas: keys are bare names
+      const defs = schema.definitions ||
+                   (schema.components && schema.components.schemas) || {};
+      Object.keys(defs).forEach(name => candidates.add(name));
+
+      discoveredTables = [...candidates].filter(t => knownSet.has(t));
+    }
+  } catch (_) {}
+
+  // Fallback: probe individually if OpenAPI yielded nothing
+  if (!discoveredTables.length) {
+    const checks = KNOWN_TABLES.map(async t => {
+      const exists = await tableExists(t);
+      if (exists) discoveredTables.push(t);
+    });
+    await Promise.allSettled(checks);
+  }
   renderSettingsTables();
 }
 
@@ -1348,16 +1400,19 @@ async function loadUsers() {
       const key = (p.email || '').toLowerCase();
       if (key) profileMap[key] = p;
     });
-    // Merge: auth user as base, spread profile on top so role/name from profile wins
+    // Merge: auth user as base, spread profile on top so role/name from profile wins.
+    // Preserve the profile table's integer PK separately so the PATCH can match by id
+    // as a fallback when the email filter hits zero rows.
     allUsers = authUsers.map(u => {
       const prof = profileMap[(u.email || '').toLowerCase()] || {};
-      return { ...u, ...prof, email: u.email || prof.email, id: u.id };
+      return { ...u, ...prof, email: u.email || prof.email, id: u.id, profile_id: prof.id };
     });
     // Include profile rows with no matching auth user (edge case)
+    // Tag them so callers know there's no auth UUID for these rows.
     profileRows.forEach(p => {
       const key = (p.email || '').toLowerCase();
       if (key && !allUsers.find(u => (u.email || '').toLowerCase() === key)) {
-        allUsers.push(p);
+        allUsers.push({ ...p, _profileOnly: true });
       }
     });
   } else if (profileRows.length > 0) {
@@ -1466,6 +1521,12 @@ function toDbRole(role) {
   });
   if (metaSample) return role.toUpperCase();
   return role.toLowerCase();
+}
+
+// Returns true only for a proper Supabase auth UUID (36-char hyphenated hex)
+function isUUID(id) {
+  return typeof id === 'string' &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 }
 
 function getName(u) {
@@ -1729,29 +1790,47 @@ async function handleRoleChange(sel) {
     let profileOk = false;
     let authOk = false;
 
-    // 1. Update the profile/users table — match by email (table uses int PK, not auth UUID)
+    // 1. Update the profile/users table
     const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
-    const roleUser = allUsers.find(u => u.id === uid);
+    // Use String() on both sides — uid from data-uid is always a string, but u.id
+    // may be an integer for profile-only rows (strict === would miss them).
+    const roleUser  = allUsers.find(u => String(u.id) === String(uid));
     const roleEmail = roleUser && roleUser.email;
-    if (profileTable && roleEmail) {
-      profileOk = await sbPatchSafe(profileTable, `email=eq.${encodeURIComponent(roleEmail)}`, { role: dbRole });
+
+    if (profileTable) {
+      // Primary: match by email (most reliable across int-PK and UUID-PK tables)
+      if (roleEmail) {
+        profileOk = await sbPatchSafe(profileTable, `email=eq.${encodeURIComponent(roleEmail)}`, { role: dbRole });
+      }
+      // Fallback: match by the profile table's own integer PK (preserved as profile_id)
+      if (!profileOk && roleUser && roleUser.profile_id != null) {
+        profileOk = await sbPatchSafe(profileTable, `id=eq.${encodeURIComponent(roleUser.profile_id)}`, { role: dbRole });
+      }
+      // Last resort: uid itself might be the integer PK (profile-only row, no auth user)
+      if (!profileOk && !isUUID(uid)) {
+        profileOk = await sbPatchSafe(profileTable, `id=eq.${encodeURIComponent(uid)}`, { role: dbRole });
+      }
     }
 
     // 2. Update auth user metadata AND app_metadata (primary/secure role store)
-    try {
-      const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, {
-        method: 'PUT',
-        body: JSON.stringify({
-          user_metadata: { role: dbRole },
-          app_metadata: { role: dbRole }
-        })
-      });
-      authOk = authRes.ok;
-    } catch(_) {}
+    // Only call the auth admin API when we have a real UUID — integer PKs from profile
+    // tables will produce a 404 and must be skipped.
+    if (isUUID(uid)) {
+      try {
+        const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            user_metadata: { role: dbRole },
+            app_metadata: { role: dbRole }
+          })
+        });
+        authOk = authRes.ok;
+      } catch(_) {}
+    }
 
     // Success if EITHER the profile table OR auth metadata was updated
     if (authOk || profileOk) {
-      const user = allUsers.find(u => u.id === uid);
+      const user = allUsers.find(u => u.id == uid);
       if (user) {
         user.role = dbRole;
         user.user_role = dbRole;
@@ -1760,10 +1839,22 @@ async function handleRoleChange(sel) {
         if (user.app_metadata) user.app_metadata.role = dbRole;
       }
       updateNavBadges();
-      showToast(`Role updated to ${newRole}`, 'success');
+      showToast(`Role updated to ${newRole}${!authOk ? ' (profile only)' : !profileOk ? ' (auth only)' : ''}`, 'success');
     } else {
-      sel.value = getRole(allUsers.find(u => u.id === uid) || {});
-      showToast('Failed to update role — check table permissions', 'error');
+      sel.value = getRole(allUsers.find(u => u.id == uid) || {});
+      // Build a specific diagnostic so the user knows exactly what failed
+      const parts = [];
+      if (!profileTable) {
+        parts.push('No profile table found in discoveredTables — check Settings → Discovered Tables');
+      } else if (sbPatchSafe.lastError) {
+        parts.push(`Profile table: ${sbPatchSafe.lastError}`);
+      } else {
+        parts.push('Profile PATCH returned no error but also no match');
+      }
+      if (isUUID(uid) && !authOk) {
+        parts.push('Auth metadata update also failed — verify service_role key permissions');
+      }
+      showToast('Role update failed: ' + parts.join(' | '), 'error');
     }
   } catch(e) {
     showToast('Error: ' + e.message, 'error');
@@ -1851,26 +1942,28 @@ async function saveUserInfo() {
   try {
     let authOk = false, profileOk = false;
 
-    // 1. Update auth user (email + metadata)
-    try {
-      const authPayload = {
-        email: newEmail,
-        user_metadata: { full_name: newName || undefined, role: dbRole, phone: newPhone || undefined },
-        app_metadata: { role: dbRole }
-      };
-      if (!newName) delete authPayload.user_metadata.full_name;
-      if (!newPhone) delete authPayload.user_metadata.phone;
-      const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, {
-        method: 'PUT', body: JSON.stringify(authPayload)
-      });
-      authOk = authRes.ok;
-      if (authOk) {
-        const updated = await authRes.json().catch(() => ({}));
-        // Merge auth response back into allUsers
-        const idx = allUsers.findIndex(u => u.id === uid);
-        if (idx !== -1) allUsers[idx] = { ...allUsers[idx], ...updated, id: uid };
-      }
-    } catch(_) {}
+    // 1. Update auth user (email + metadata) — only for real auth UUIDs
+    if (isUUID(uid)) {
+      try {
+        const authPayload = {
+          email: newEmail,
+          user_metadata: { full_name: newName || undefined, role: dbRole, phone: newPhone || undefined },
+          app_metadata: { role: dbRole }
+        };
+        if (!newName) delete authPayload.user_metadata.full_name;
+        if (!newPhone) delete authPayload.user_metadata.phone;
+        const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, {
+          method: 'PUT', body: JSON.stringify(authPayload)
+        });
+        authOk = authRes.ok;
+        if (authOk) {
+          const updated = await authRes.json().catch(() => ({}));
+          // Merge auth response back into allUsers
+          const idx = allUsers.findIndex(u => u.id === uid);
+          if (idx !== -1) allUsers[idx] = { ...allUsers[idx], ...updated, id: uid };
+        }
+      } catch(_) {}
+    } // end isUUID guard
 
     // 2. Update profile table using column-aware safe patch
     const profileTable = discoveredTables.find(t => ['users','profiles','user_profiles'].includes(t));
@@ -1926,6 +2019,11 @@ async function toggleBanUser() {
   const isBanned = !!(user.banned_until && new Date(user.banned_until) > new Date());
   const btn = document.getElementById('ban-toggle-btn');
   btn.disabled = true;
+  if (!isUUID(uid)) {
+    showToast('Cannot ban/unban: user has no Supabase Auth account', 'error');
+    btn.disabled = false;
+    return;
+  }
   try {
     const payload = isBanned
       ? { ban_duration: 'none' }
@@ -1976,6 +2074,7 @@ async function sendPasswordReset() {
 async function forceSignOut() {
   const uid = _editingUserId;
   if (!uid) return;
+  if (!isUUID(uid)) { showToast('No Supabase Auth account for this user', 'error'); return; }
   try {
     const res = await sbFetch(`/auth/v1/admin/users/${uid}/logout`, { method: 'POST' });
     showToast(res.ok ? 'All sessions invalidated' : 'Failed to sign out user', res.ok ? 'success' : 'error');
@@ -2015,13 +2114,15 @@ async function confirmDeleteUser() {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;border-top-color:#fff;display:inline-block;margin-right:6px"></div>Deleting…';
   try {
-    // 1. Delete from Supabase Auth
-    const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, { method: 'DELETE' });
-    if (!authRes.ok && authRes.status !== 404) {
-      const err = await authRes.json().catch(() => ({}));
-      showToast(err.message || 'Failed to delete from Auth', 'error');
-      btn.disabled = false; btn.innerHTML = '<i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete';
-      return;
+    // 1. Delete from Supabase Auth (only if the id is a real UUID)
+    if (isUUID(uid)) {
+      const authRes = await sbFetch(`/auth/v1/admin/users/${uid}`, { method: 'DELETE' });
+      if (!authRes.ok && authRes.status !== 404) {
+        const err = await authRes.json().catch(() => ({}));
+        showToast(err.message || 'Failed to delete from Auth', 'error');
+        btn.disabled = false; btn.innerHTML = '<i class="ti ti-trash" style="margin-right:6px"></i>Yes, Delete';
+        return;
+      }
     }
 
     // 2. Delete from profile table by email (best-effort; table uses int PK not auth UUID)
